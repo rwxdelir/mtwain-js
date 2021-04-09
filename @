@@ -47,10 +47,11 @@ class V2 {
 }
 
 const directionMap = {
-	'ArrowDown': new V2(1.0, 0),
-	'ArrowRight': new V2(0, 1.0),
-	'ArrowLeft': new V2(0, -1.0)
+	'ArrowDown': new V2(0, 1.0),
+	'ArrowRight': new V2(1.0, 0),
+	'ArrowLeft': new V2(-1.0, 0)
 } 
+
 
 class Camera {
 	pos = new V2(0, 0);
@@ -79,39 +80,29 @@ class Camera {
 		}
 	}
 
-	fillRect(x, y, piece, s, color) {
+	fillRect(x, y, color) {
 		this.context.fillStyle = color;
 		for (let i = 0; i < 4; i++) {
 			for (let j = 0; j < 4; j++) {
-				if (blockMap[piece][s] & (0x8000 >> (i * 4 + j))) {
+				if (blockMap[0][0] & (0x8000 >> (i * 4 + j))) {
 					this.context.fillRect((20 * j) + y, (20 * i) + x, 19, 19);
 				}
 			}
 		}
-	}
-
-	nextShape() {
-
 	}
 }
 
 class Player {
 	constructor(pos) {
 		this.pos = pos;
-		this.piece = Math.floor(Math.random() * (4 - 0) + 0);
 	}
+	
 	update(dt, vel) {
-		if (this.pos.y <= 120 && vel.y == 1) {
-			this.pos = this.pos.add(vel.scale(20));
-		} else if (vel.y == -1 && this.pos.y >= 0) {
-			this.pos = this.pos.add(vel.scale(20));
-		} else if (vel.y == 0 && this.pos.x < 340){
-			this.pos = this.pos.add(vel.scale(20));
-		}
+		this.pos = this.pos.add(vel.scale(20));
 	}
 
 	render(camera) {
-		camera.fillRect(this.pos.x, this.pos.y, this.piece, 0, 'black');
+		camera.fillRect(this.pos.x, this.pos.y, 'black');
 	}
 }
 
@@ -125,6 +116,7 @@ class Game {
 
 	keyDown(event) {
 		this.pressedKeys.add(event.code);
+		console.log(this.pressedKeys)
 	}
 
 	keyUp(event) {
@@ -155,30 +147,27 @@ let game = null;
 	let windowWasResized = true;
 	
 	let game = new Game(ctx);
-	let i = 0;
+	
 	let start;
 	function step(timestamp) {
 		if (start === undefined) {
 			start = timestamp;
 		}
-		const dt = (timestamp - start) * 0.1;
+		const dt = (timestamp - start) * 0.001;
 		start = timestamp;
 
 		if (windowWasResized) {
-			canvas.width = 1000;
-			canvas.height = 400;
+			canvas.width = 500;
+			canvas.height = 1000;
+			console.log(canvas.width)
+			console.log(canvas.height)
 
 			windowWasResized = false;
 		}
 
-		if (i > 2) {
-			i = 0;
-			start = 0;
-			game.camera.createBoard(boardMap);
-			game.update(dt);
-
-		}
-		++i;
+		game.camera.createBoard(boardMap);
+		game.camera.fillRect(100 * 2, -20, 'black');	
+		game.update(dt);
 
 		window.requestAnimationFrame(step);
 	}
@@ -196,5 +185,6 @@ let game = null;
 	document.addEventListener('keyup', event => {
 		game.keyUp(event)
 	})
+
 })();
 
