@@ -8,6 +8,7 @@ const blockMap = [
   [ 0xCC00, 0xCC00, 0xCC00, 0xCC00 ]  // 'O'
 ];
 
+const oardMap = new Array(20).fill(Array(10).fill(0));
 const boardMap = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -30,7 +31,7 @@ const boardMap = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
-
+Object.freeze(boardMap);
 class V2 {
 	constructor(x, y) {
 		this.x = x;
@@ -74,17 +75,33 @@ class Camera {
 		this.context.fillStyle = 'red';
 		for (let i = 0; i < boardMap.length; i++) {
 			for (let j = 0; j < boardMap[i].length; j++) {
+				if (boardMap[i][j] == 1) {
+					this.context.fillStyle = 'pink';
+				} else {
+					this.context.fillStyle = 'red';
+				}
+
 				this.context.fillRect(20 * j, 20 * i, 19, 19);
+			}
+		}
+	}
+	
+	allZero(boardMap) {
+		for (let i = 0; i < boardMap.length; i++) {
+			for (let j = 0; j < boardMap[i].length; j++) {
+				boardMap[i][j] = 0;
 			}
 		}
 	}
 
 	fillRect(x, y, piece, s, color) {
+		this.allZero(boardMap);
 		this.context.fillStyle = color;
 		for (let i = 0; i < 4; i++) {
 			for (let j = 0; j < 4; j++) {
 				if (blockMap[piece][s] & (0x8000 >> (i * 4 + j))) {
-					this.context.fillRect((20 * j) + y, (20 * i) + x, 19, 19);
+					//this.context.fillRect((20 * j) + y, (20 * i) + x, 19, 19);
+					boardMap[i + x][j + y] = 1;
 				}
 			}
 		}
@@ -98,15 +115,13 @@ class Camera {
 class Player {
 	constructor(pos) {
 		this.pos = pos;
-		this.piece = Math.floor(Math.random() * (4 - 0) + 0);
+		this.piece = Math.floor(Math.random() * (7 - 0) + 0);
 	}
 	update(dt, vel) {
-		if (this.pos.y <= 120 && vel.y == 1) {
-			this.pos = this.pos.add(vel.scale(20));
-		} else if (vel.y == -1 && this.pos.y >= 0) {
-			this.pos = this.pos.add(vel.scale(20));
-		} else if (vel.y == 0 && this.pos.x < 340){
-			this.pos = this.pos.add(vel.scale(20));
+		if (this.pos.y + 2 < 10) {
+			this.pos = this.pos.add(vel.scale(1));
+		} else if (vel.y == -1){
+			this.pos = this.pos.add(vel.scale(1));
 		}
 	}
 
@@ -174,6 +189,7 @@ let game = null;
 		if (i > 2) {
 			i = 0;
 			start = 0;
+
 			game.camera.createBoard(boardMap);
 			game.update(dt);
 
