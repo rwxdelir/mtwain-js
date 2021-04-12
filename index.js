@@ -1,22 +1,4 @@
-const tetromino2 = [ 
-	[[1,0],
-  [1,1], 
-  [1,0]],
- [[1,1], 
-  [1,1]],
- [[1],  
-  [1],  
-  [1], 
-  [1]],  
- [[1,0], 
-  [1,0], 
-  [1,1]],
- [[1,1,1,1],
- 	[0,1,0,0]],
-]
-
-const tetromino = [
-[	
+const tetromino = [[	
 	[[1,0],
 	 [1,1],
 	 [1,0]],
@@ -25,7 +7,7 @@ const tetromino = [
 	[[0,1],
 	 [1,1],
 	 [0,1]],
-	[[0,1,0]
+	[[0,1,0],
 	 [1,1,1]]
 ],[
 	[[1,1],
@@ -77,10 +59,10 @@ const boardMap = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]    
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]    
 ]
 
 class V2 {
@@ -110,9 +92,13 @@ class Board {
 	}
 
 	fillBoard() {
-		this.context.fillStyle = 'black';
 		for (let i = 0; i < boardMap.length; i++) {
 			for (let j = 0; j < boardMap[i].length; j++) {
+				if (boardMap[i][j] == 1) {
+					this.context.fillStyle = 'red';
+				} else { 
+					this.context.fillStyle = 'black';
+				}
 				this.context.fillRect(20 * j, 20 * i, 19, 19);
 			}
 		}
@@ -148,14 +134,31 @@ class Piece {
 		return 20 * tetromino[this.pieceIndex][this.pieceShape].length;
 	}
 
+	canSetPos() {
+	// TODO (#2): Limit doesn't work in Y: 14, X: 8) for some cases
+	for (let i = 0; i < (this.getWidth() / 20); i++) {
+		if (tetromino[this.pieceIndex][this.pieceShape][(this.getHeight() / 20) - 1][i] > 0) {
+			if (boardMap[((this.potentialPos.y + this.getHeight()) / 20) - 1][(this.potentialPos.x / 20) + i] > 0) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
 	update() {
+		this.canSetPos()
 		if (this.potentialPos.x < 220 - this.getWidth() &&
 				this.potentialPos.x >= 0 && this.potentialPos.y < 420 - this.getHeight()) {
-			this.pos = this.potentialPos;
+			if (this.canSetPos()) {
+				this.pos = this.potentialPos;
+			}
 		}
 		this.potentialPos = this.pos;	
 
 		this.fillPiece();
+		console.log("Y: " + this.potentialPos.y / 20 + " " + "X: " + this.potentialPos.x / 20)
+
 	}
 }
 
@@ -176,7 +179,6 @@ class JTetris {
 			}
 		}
 
-		console.log(this.piece.potentialPos)
 		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));
 		this.board.fillBoard();
 		this.piece.update();
