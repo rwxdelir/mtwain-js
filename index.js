@@ -52,9 +52,9 @@ class V2 {
 }
 
 const directionMap = {
-  'ArrowDown': new V2(1.0, 0),
-  'ArrowRight': new V2(0, 1.0),
-  'ArrowLeft': new V2(0, -1.0)
+  'ArrowDown': new V2(0, 1.0),
+  'ArrowRight': new V2(1.0, 0),
+  'ArrowLeft': new V2(-1.0, 0)
 }
 
 class Board {
@@ -86,7 +86,7 @@ class Piece {
 		for (let i = 0; i < tetromino[this.pieceIndex].length; i++) {
 			for (let j = 0; j < tetromino[i].length; j++) {
 				if (tetromino[this.pieceIndex][i][j] == 1) {
-					this.context.fillRect(20 * j, 20 * i, 19, 19);
+					this.context.fillRect(20 * j + this.pos.x, 20 * i + this.pos.y, 19, 19);
 				}
 			}
 		}
@@ -98,6 +98,11 @@ class Piece {
 	
 	getHeight() {
 
+	}
+
+	update() {
+		this.pos = this.potentialPos;
+		this.fillPiece();
 	}
 }
 
@@ -119,10 +124,10 @@ class JTetris {
 		}
 
 		console.log(this.piece.potentialPos)
-		this.piece.potentialPos = this.piece.potentialPos.add(vel);
+		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));
 		
 		this.board.fillBoard();
-		this.piece.fillPiece();
+		this.piece.update();
 	}
 
 	keyDown(event) {
@@ -144,20 +149,16 @@ let game = null;
 
 	let game = new JTetris(context);
 	let start = 0;
-	let i = 0;
 
 	function step(timestamp) {
 		if (start === undefined)  {
 			start = timestamp;
 		}
-		let dt = Math.floor(start / 1000);
-		start = timestamp;
 
-		if (dt > 2) {
-			dt = 0;
+		if (!start || timestamp - start >= 100) {
+			start = timestamp;
 			game.update();
 		}
-		console.log(dt)
 		window.requestAnimationFrame(step);
 	}
 
