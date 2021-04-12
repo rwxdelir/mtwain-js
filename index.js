@@ -1,4 +1,4 @@
-const tetromino = [ 
+const tetromino2 = [ 
 	[[1,0],
   [1,1], 
   [1,0]],
@@ -11,7 +11,54 @@ const tetromino = [
  [[1,0], 
   [1,0], 
   [1,1]],
+ [[1,1,1,1],
+ 	[0,1,0,0]],
 ]
+
+const tetromino = [
+[	
+	[[1,0],
+	 [1,1],
+	 [1,0]],
+	[[1,1,1],
+	 [0,1,0]],
+	[[0,1],
+	 [1,1],
+	 [0,1]],
+	[[0,1,0]
+	 [1,1,1]]
+],[
+	[[1,1],
+	 [1,1]],
+	[[1,1],
+	 [1,1]],
+	[[1,1],
+	 [1,1]],
+	[[1,1],
+	 [1,1]]
+],[
+	[[1],
+	 [1],
+	 [1],
+	 [1]],
+	[[1,1,1,1]],
+	 [[1],
+	 	[1],
+	 	[1],
+	 	[1]],
+	[[1,1,1,1]]
+],[
+	[[1,0], 
+   [1,0], 
+   [1,1]],
+	[[1,1,1],
+	 [1,0,0]],
+	[[1,1],
+	 [0,1],
+	 [0,1]],
+	[[0,0,1],
+	 [1,1,1]]
+]]
 
 const boardMap = [    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
@@ -79,13 +126,14 @@ class Piece {
 		this.pos = pos;
 		this.potentialPos = new V2(0, 0);
 		this.pieceIndex = Math.floor(Math.random() * (4 - 0) + 0);
+		this.pieceShape = Math.floor(Math.random() * (4 - 0) + 0);
 	}
 	
 	fillPiece() {
 		this.context.fillStyle = "red";
-		for (let i = 0; i < tetromino[this.pieceIndex].length; i++) {
-			for (let j = 0; j < tetromino[i].length; j++) {
-				if (tetromino[this.pieceIndex][i][j] == 1) {
+		for (let i = 0; i < tetromino[this.pieceIndex][this.pieceShape].length; i++) {
+			for (let j = 0; j < tetromino[this.pieceIndex][this.pieceShape][i].length; j++) {
+				if (tetromino[this.pieceIndex][this.pieceShape][i][j] == 1) {
 					this.context.fillRect(20 * j + this.pos.x, 20 * i + this.pos.y, 19, 19);
 				}
 			}
@@ -93,15 +141,20 @@ class Piece {
 	}
 
 	getWidth() {
-
+		return 20 * Math.max(...tetromino[this.pieceIndex][this.pieceShape].map(x => x.length));
 	}
 	
 	getHeight() {
-
+		return 20 * tetromino[this.pieceIndex][this.pieceShape].length;
 	}
 
 	update() {
-		this.pos = this.potentialPos;
+		if (this.potentialPos.x < 220 - this.getWidth() &&
+				this.potentialPos.x >= 0 && this.potentialPos.y < 420 - this.getHeight()) {
+			this.pos = this.potentialPos;
+		}
+		this.potentialPos = this.pos;	
+
 		this.fillPiece();
 	}
 }
@@ -125,7 +178,6 @@ class JTetris {
 
 		console.log(this.piece.potentialPos)
 		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));
-		
 		this.board.fillBoard();
 		this.piece.update();
 	}
