@@ -103,6 +103,10 @@ class Board {
 			}
 		}
 	}
+
+	update() {
+		this.fillBoard()
+	}
 }
 
 class Piece {
@@ -143,7 +147,7 @@ class Piece {
 		for (let i = 0; i < tetRow; i++) {
 			for (let j = 0; j < tetCol; j++) {
 				if (boardMap[row + i][col + j] > 0 &&
-						tetromino[this.pieceIndex][this.pieceShape][i][j]	) {
+						tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
 					return false;
 				}
 			}
@@ -151,14 +155,23 @@ class Piece {
 		return true
 	}
 
-	update() {
-		this.canSetPos()
-		if (this.potentialPos.x < 220 - this.getWidth() &&
-				this.potentialPos.x >= 0 && this.potentialPos.y < 420 - this.getHeight()) {
-			if (this.canSetPos()) {
-				this.pos = this.potentialPos;
+	freeze() {
+		let row = ((this.pos.y) / 20);
+		let col = ((this.pos.x) / 20);
+		let tetRow = (this.getHeight() / 20);
+		let tetCol = (this.getWidth() / 20);
+
+		for (let i = 0; i < tetRow; i++) {
+			for (let j = 0; j < tetCol; j++) {
+				if (boardMap[row + i][col + j] > 0 &&
+						tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
+					boardMap[row + i][col + j] = tetromino[this.pieceIndex][this.pieceShape][i][j];
+				}
 			}
 		}
+	}
+
+	update() {
 		this.potentialPos = this.pos;	
 
 		this.fillPiece();
@@ -184,7 +197,18 @@ class JTetris {
 		}
 
 		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));
-		this.board.fillBoard();
+
+		if (this.piece.potentialPos.x < 220 - this.piece.getWidth() &&
+				this.piece.potentialPos.x >= 0 && this.piece.potentialPos.y < 420 - this.piece.getHeight()) {
+			if (this.piece.canSetPos()) {
+				this.piece.pos = this.piece.potentialPos;
+			} else {
+				this.piece.freeze();
+				this.board.update();
+			}
+		}
+
+		this.board.update();
 		this.piece.update();
 	}
 
