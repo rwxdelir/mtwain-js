@@ -54,15 +54,15 @@ const boardMap = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],     
+  [0, 0, 0, 0, 1, 0, 1, 0, 0, 0],    
+  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],     
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1],    
-  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]    
+  [0, 0, 0, 0, 0, 0, 1, 0, 1, 1]    
 ]
 
 class V2 {
@@ -135,16 +135,21 @@ class Piece {
 	}
 
 	canSetPos() {
-	// TODO (#2): Limit doesn't work in Y: 14, X: 8) for some cases
-	for (let i = 0; i < (this.getWidth() / 20); i++) {
-		if (tetromino[this.pieceIndex][this.pieceShape][(this.getHeight() / 20) - 1][i] > 0) {
-			if (boardMap[((this.potentialPos.y + this.getHeight()) / 20) - 1][(this.potentialPos.x / 20) + i] > 0) {
-				return false;
+		let row = ((this.potentialPos.y) / 20);
+		let col = ((this.potentialPos.x) / 20);
+		let tetRow = (this.getHeight() / 20);
+		let tetCol = (this.getWidth() / 20);
+
+		for (let i = 0; i < tetRow; i++) {
+			for (let j = 0; j < tetCol; j++) {
+				if (boardMap[row + i][col + j] > 0 &&
+						tetromino[this.pieceIndex][this.pieceShape][i][j]	) {
+					return false;
+				}
 			}
 		}
+		return true
 	}
-	return true;
-}
 
 	update() {
 		this.canSetPos()
@@ -157,7 +162,6 @@ class Piece {
 		this.potentialPos = this.pos;	
 
 		this.fillPiece();
-		console.log("Y: " + this.potentialPos.y / 20 + " " + "X: " + this.potentialPos.x / 20)
 
 	}
 }
