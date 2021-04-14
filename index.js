@@ -19,10 +19,10 @@ const tetromino = [[
 	[[1,1],
 	 [1,1]]
 ],[
-	[[1],
-	 [1],
-	 [1],
-	 [1]],
+	[[1,0,0,0],
+	 [1,0,0,0],
+	 [1,0,0,0],
+	 [1,0,0,0]],
 	[[1,1,1,1]],
 	 [[1],
 	 	[1],
@@ -116,7 +116,7 @@ class Piece {
 		this.pos = pos;
 		this.potentialPos = new V2(0, 0);
 		this.pieceIndex = Math.floor(Math.random() * (4 - 0) + 0);
-		this.pieceShape = Math.floor(Math.random() * (4 - 0) + 0);
+		this.pieceShape = 0;
 	}
 	
 	fillPiece() {
@@ -131,27 +131,41 @@ class Piece {
 	}
 
 	getWidth() {
-		return 20 * Math.max(...tetromino[this.pieceIndex][this.pieceShape].map(x => x.length));
+		return 20 * Math.max(...tetromino[this.pieceIndex][this.pieceShape].map((x) => {
+				let i = 0, acc = 0;
+				for (; i < x.length; i++) {
+					if (x[i] > 0) {
+						++acc;
+					}
+				} 
+				return acc;
+			}))
 	}
 	
 	getHeight() {
 		return 20 * tetromino[this.pieceIndex][this.pieceShape].length;
 	}
 
-	canSetPos() {
-		let row = ((this.potentialPos.y) / 20);
-		let col = ((this.potentialPos.x) / 20);
+	canSetPos(pos) {
+		let row = (pos.y / 20);
+		let col = (pos.x / 20);
+		console.log(pos.y)
 		let tetRow = (this.getHeight() / 20);
 		let tetCol = (this.getWidth() / 20);
-
+		if (row + (this.getHeight() / 20) - 1 >= boardMap.length
+				&& col + (this.getWidth() / 20) - 1 <= boardMap[0].length) {
+			return false;
+		}
 		for (let i = 0; i < tetRow; i++) {
 			for (let j = 0; j < tetCol; j++) {
 				if (boardMap[row + i][col + j] > 0 &&
 						tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
+
 					return false;
 				}
 			}
 		}
+
 		return true
 	}
 
@@ -169,54 +183,74 @@ class Piece {
 			}
 		}
 	}
+	
+	nextShape() {
+		this.pieceShape = (1 + this.pieceShape) % 4;	
+	}
 
 	update() {
 		this.potentialPos = this.pos;	
 
 		this.fillPiece();
-
 	}
 }
 
 class JTetris {
 	pressedKeys = new Set();
-
+	key;
 	constructor(context) {
 		this.context = context;
 		this.board = new Board(this.context);
 		this.piece = new Piece(new V2(0, 0), this.context);
+		this.moved = false;
 	}
 
 	update() {
 		let vel = new V2(0, 0);
-		for (let key of this.pressedKeys) {
-			if (key in directionMap) {
-				vel = vel.add(directionMap[key])
-			}
+
+		if (this.key in directionMap && !this.moved) {
+			vel = vel.add(directionMap[this.key]);
+			this.moved = true;
+		} 
+
+ 		if (this.piece.canSetPos(new V2(this.piece.potentialPos.x, this.piece.potentialPos.y + 20))) {
+			this.piece.potentialPos.y += 20;
+			this.piece.pos = this.piece.potentialPos;
+		} else if (this.piece.potentialPos.y <= this.piece.pos.y) {
+			this.piece.freeze();
+			this.board.update();
 		}
 
-		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));
+		this.piece.potentialPos = this.piece.potentialPos.add(vel.scale(20));	
+		this.moved = false;
 
 		if (this.piece.potentialPos.x < 220 - this.piece.getWidth() &&
 				this.piece.potentialPos.x >= 0 && this.piece.potentialPos.y < 420 - this.piece.getHeight()) {
-			if (this.piece.canSetPos()) {
+			if (this.piece.canSetPos(this.piece.potentialPos)) {
 				this.piece.pos = this.piece.potentialPos;
-			} else {
-				this.piece.freeze();
-				this.board.update();
 			}
+		} else {
+			console.log("FALSE")
+			console.log("Piece WIDTH = " + this.piece.getWidth())
 		}
+
+
+		
+		
 
 		this.board.update();
 		this.piece.update();
+		console.log(this.piece.pos.y)
 	}
 
 	keyDown(event) {
 		this.pressedKeys.add(event.code);
+		this.key = event.code;
 	}
 
 	keyUp(event) {
 		this.pressedKeys.delete(event.code);
+		this.key = "";
 	}
 }
 
@@ -235,7 +269,7 @@ let game = null;
 		if (start === undefined)  {
 			start = timestamp;
 		}
-
+		
 		if (!start || timestamp - start >= 100) {
 			start = timestamp;
 			game.update();
