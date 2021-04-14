@@ -156,15 +156,14 @@ class Piece {
 	}
 
 	freeze() {
-		let row = ((this.pos.y) / 20);
-		let col = ((this.pos.x) / 20);
+		let row = (this.pos.y / 20);
+		let col = (this.pos.x / 20);
 		let tetRow = (this.getHeight() / 20);
 		let tetCol = (this.getWidth() / 20);
 
 		for (let i = 0; i < tetRow; i++) {
 			for (let j = 0; j < tetCol; j++) {
-				if (boardMap[row + i][col + j] > 0 &&
-						tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
+				if (tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
 					boardMap[row + i][col + j] = tetromino[this.pieceIndex][this.pieceShape][i][j];
 				}
 			}
