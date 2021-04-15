@@ -118,7 +118,15 @@ class Piece {
 		this.pieceIndex = Math.floor(Math.random() * (4 - 0) + 0);
 		this.pieceShape = 0;
 	}
-	
+		
+	new() {
+		this.pos = new V2(0,0);
+		this.potentialPos = new V2(0,0);
+		this.pieceIndex = Math.floor(Math.random() * (4 - 0) + 0);
+		this.pieceShape = 0;
+		this.fillPiece();
+	}
+
 	fillPiece() {
 		this.context.fillStyle = "red";
 		for (let i = 0; i < tetromino[this.pieceIndex][this.pieceShape].length; i++) {
@@ -134,9 +142,7 @@ class Piece {
 		return 20 * Math.max(...tetromino[this.pieceIndex][this.pieceShape].map((x) => {
 				let i = 0, acc = 0;
 				for (; i < x.length; i++) {
-					if (x[i] > 0) {
-						++acc;
-					}
+					if (x[i] > 0) { ++acc; }
 				} 
 				return acc;
 			}))
@@ -179,6 +185,7 @@ class Piece {
 			for (let j = 0; j < tetCol; j++) {
 				if (tetromino[this.pieceIndex][this.pieceShape][i][j] > 0) {
 					boardMap[row + i][col + j] = tetromino[this.pieceIndex][this.pieceShape][i][j];
+					console.log(boardMap)
 				}
 			}
 		}
@@ -218,6 +225,7 @@ class JTetris {
 			this.piece.pos = this.piece.potentialPos;
 		} else if (this.piece.potentialPos.y <= this.piece.pos.y) {
 			this.piece.freeze();
+			this.piece.new();
 			this.board.update();
 		}
 
@@ -228,15 +236,12 @@ class JTetris {
 				this.piece.potentialPos.x >= 0 && this.piece.potentialPos.y < 420 - this.piece.getHeight()) {
 			if (this.piece.canSetPos(this.piece.potentialPos)) {
 				this.piece.pos = this.piece.potentialPos;
+				console.log(this.piece.canSetPos(this.piece.potentialPos))
 			}
 		} else {
 			console.log("FALSE")
 			console.log("Piece WIDTH = " + this.piece.getWidth())
 		}
-
-
-		
-		
 
 		this.board.update();
 		this.piece.update();
