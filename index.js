@@ -60,10 +60,10 @@ class Tetris {
 			}
 		];
 
-		this.piece = this.pieces[0]; 	// current piece
-		this.pieceRotation = 0; 			// current piece's position
+		this.piece = this.pieces[5]; 	// current piece
+		this.pieceRotation = 1; 			// current piece's position
 		this.next = this.pieces[0];   // next piece
-
+	
 		this.board = [];
 		for (let i = 0; i < this.boardHeight; i++) {
 			const row = [];
@@ -77,8 +77,10 @@ class Tetris {
 		this.moveLeft = false;
 		this.moveRight = false;
 		this.moveDown = false;
-
-
+		
+		this.board[11][3] = 3;
+		this.board[11][4] = 3;
+		this.board[11][6] = 3;
 	}
 	
 
@@ -111,12 +113,11 @@ class Tetris {
 		
 		for (let row = 0; row < p.length; row++) { 
 			for (let col = 0; col < p[row].length; col++) {
-				if (p[row][col] != 0) {
-					
-					// Set left and right move limits
-					if (p[row].length + pPosX < bWidth) { this.moveRight = true; } 
+				if (p[row][col] != 7) {
+					if (this._pieceWidth() + pPosX + 1 <= bWidth) { 
+						this.moveRight = true; 
+					} 
 					if (pPosX > 0) { this.moveLeft = true }
-					console.log(bHeight)	
 					if (p.length + pPosY < bHeight) { this.moveDown = true }
 				}
 			}
@@ -133,8 +134,8 @@ class Tetris {
 			for (let j = 0; j < this.board[i].length; j++) {
 				if (this.board[i][j] < 7) {
 					this._drawSquare(
-						this.boardX * j,
-						this.boardY * i,
+						this.boardX + this.squareSide * j,
+						this.boardY + this.squareSide * i,
 						this.pieces[this.board[i][j]].color
 					)
 				}
@@ -165,14 +166,51 @@ class Tetris {
 		this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 	}
 
+	_pieceWidth() {
+		let p = this.piece.rotation[this.pieceRotation];
+		let entry = [];
+		let acc = 0;
+		for (let i = 0; i < p.length; i++) {
+			for (let j = 0; j < p[i].length; j++) {
+				if (p[i][j] != 0) {
+					entry.push(j);	
+				}
+			}
+		}
+		
+		let min = Math.min(...entry)
+		let max = Math.max(...entry)
+
+		while(min <= max) {
+			++acc;
+			++min;
+		}
+		return acc;
+	}
+
+	_pieceHeight() {
+		let p = this.piece.rotation[this.pieceRotation];
+		let acc = 0;
+		let f = true
+		for (let i = 0; i < p.length; i++) {
+			for (let j = 0; j < p[i].length; j++) {
+				if (p[i][j] > 0 && f) { 
+					++acc;
+					f = false;
+				}
+			}
+			f = true;
+		}
+		return acc;
+	}
+
 	_sleep() {return new Promise(requestAnimationFrame); }
-	
 }
 
 (() => {
 	const canvas = document.getElementById('game-canvas');
 	const game = new Tetris(canvas);
-	
+
 	document.addEventListener('keydown', event => {
 		if (event.defaultPrevented) {
 			return;
@@ -203,7 +241,6 @@ class Tetris {
 
 		event.preventDefault();
 	})
-	console.log(game.board[0].length)
 	game.play();
 }) ()
 
