@@ -4,7 +4,6 @@ class Tetris {
 		this.context = this.canvas.getContext('2d');
 		this.frameCounter = 0;
 		this.gameLoop = false;
-		this.piecePosition = [0, 0];
 
 		this.boardWidth = BOARD_WIDTH;
 		this.boardHeight = BOARD_HEIGHT;
@@ -20,49 +19,67 @@ class Tetris {
 				id: 0,
 				name: 'z',
 				color: '#0074D9',
-				rotation: Z_ROT
+				rotation: Z_ROT,
+				initialP: Z_INI_POS,
+				boxSize: Z_BOX_SIZE
 			},
 			{
 				id: 1,
 				name: 's',
 				color: '#7FDBFF',
-				rotation: S_ROT
+				rotation: S_ROT,
+				initialP: S_INI_POS,
+				boxSize: S_BOX_SIZE
 			},
 			{
 				id: 2,
 				name: 'o',
 				color: '#FFDC00',
-				rotation: O_ROT
+				rotation: O_ROT,
+				initialP: O_INI_POS,
+				boxSize: O_BOX_SIZE
 			},
 			{
 				id: 3,
 				name: 'l',
 				color: '#FF4136',
-				rotation: L_ROT
+				rotation: L_ROT,
+				initialP: L_INI_POS,
+				boxSize: L_BOX_SIZE
 			},
 			{
 				id: 4,
 				name: 'j',
 				color: '#85144b',
-				rotation: J_ROT
+				rotation: J_ROT,
+				initialP: J_INI_POS,
+				boxSize: J_BOX_SIZE
 			},
 			{
 				id: 5,
 				name: 't',
 				color: '#3D9970',
-				rotation: T_ROT
+				rotation: T_ROT,
+				initialP: T_INI_POS,
+				boxSize: J_BOX_SIZE
 			},
 			{
 				id: 6,
 				name: 'i',
 				color: '#AAAAAA',
-				rotation: I_ROT
+				rotation: I_ROT,
+				initialP: I_INI_POS,
+				boxSize: I_BOX_SIZE
 			}
 		];
 
-		this.piece = this.pieces[5]; 	// current piece
-		this.pieceRotation = 1; 			// current piece's position
+		this.piece = this.pieces[4]; 	// current piece
+		this.pieceRotation = 0; 			// current piece's position
 		this.next = this.pieces[0];   // next piece
+		this.piecePosition = [this.piece.initialP[0] * this.squareSide,	
+													this.piece.initialP[1] * this.squareSide];
+
+		console.log("Dsad " + this._pieceHeight())
 	
 		this.board = [];
 		for (let i = 0; i < this.boardHeight; i++) {
@@ -95,7 +112,14 @@ class Tetris {
 	_process() {
 		++this.frameCounter;
 		this._render();
-		this.frameCounter = 0;
+		if (this.frameCounter > 20) {
+			this._canMove();
+			this.frameCounter = 0;
+			if (this.moveDown) {
+				this.piecePosition[1] += this.squareSide;
+				this.moveDown = false;
+			}
+		}
 	}
 
 	_render() {
@@ -108,17 +132,23 @@ class Tetris {
 		let p = this.piece.rotation[this.pieceRotation];
 		let bWidth = this.boardWidth;
 		let bHeight = this.boardHeight;
-		let pPosX = this.piecePosition[0] / this.squareSide;
-		let pPosY = this.piecePosition[1] / this.squareSide;
-		
+		let pPosX = (this.piecePosition[0] / this.squareSide) + 1;
+		let pPosY = (this.piecePosition[1] / this.squareSide) + 1;
+		let boxSize = this.piece.boxSize[this.pieceRotation];
+		console.log(boxSize)	
 		for (let row = 0; row < p.length; row++) { 
 			for (let col = 0; col < p[row].length; col++) {
 				if (p[row][col] != 7) {
-					if (this._pieceWidth() + pPosX + 1 <= bWidth) { 
-						this.moveRight = true; 
+					if (this._pieceWidth() + pPosX + boxSize[0] <= bWidth) { 
+						this.moveRight = true;
 					} 
-					if (pPosX > 0) { this.moveLeft = true }
-					if (p.length + pPosY < bHeight) { this.moveDown = true }
+					if ((pPosX - this._pieceWidth()) - boxSize[1] >= -1) {
+						console.log("pPosX " + pPosX + " width " + this._pieceWidth())
+						this.moveLeft = true;
+					}
+					if (this._pieceHeight() + pPosY + boxSize[2] <= bHeight) { 
+						this.moveDown = true;
+					}
 				}
 			}
 		}
@@ -215,7 +245,7 @@ class Tetris {
 		if (event.defaultPrevented) {
 			return;
 		}
-
+		console.log(game._pieceHeight())
 		game._canMove(); // check available movements otherwise false
 
 		switch(event.code) {
