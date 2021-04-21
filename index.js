@@ -20,66 +20,58 @@ class Tetris {
 				name: 'z',
 				color: '#0074D9',
 				rotation: Z_ROT,
-				initialP: Z_INI_POS,
-				boxSize: Z_BOX_SIZE
+				initialP: Z_INI_POS
 			},
 			{
 				id: 1,
 				name: 's',
 				color: '#7FDBFF',
 				rotation: S_ROT,
-				initialP: S_INI_POS,
-				boxSize: S_BOX_SIZE
+				initialP: S_INI_POS
 			},
 			{
 				id: 2,
 				name: 'o',
 				color: '#FFDC00',
 				rotation: O_ROT,
-				initialP: O_INI_POS,
-				boxSize: O_BOX_SIZE
+				initialP: O_INI_POS
 			},
 			{
 				id: 3,
 				name: 'l',
 				color: '#FF4136',
 				rotation: L_ROT,
-				initialP: L_INI_POS,
-				boxSize: L_BOX_SIZE
+				initialP: L_INI_POS
 			},
 			{
 				id: 4,
 				name: 'j',
 				color: '#85144b',
 				rotation: J_ROT,
-				initialP: J_INI_POS,
-				boxSize: J_BOX_SIZE
+				initialP: J_INI_POS
 			},
 			{
 				id: 5,
 				name: 't',
 				color: '#3D9970',
 				rotation: T_ROT,
-				initialP: T_INI_POS,
-				boxSize: J_BOX_SIZE
+				initialP: T_INI_POS
 			},
 			{
 				id: 6,
 				name: 'i',
 				color: '#AAAAAA',
 				rotation: I_ROT,
-				initialP: I_INI_POS,
-				boxSize: I_BOX_SIZE
+				initialP: I_INI_POS
 			}
 		];
 
-		this.piece = this.pieces[4]; 	// current piece
-		this.pieceRotation = 0; 			// current piece's position
+		this.piece = this.pieces[0]; 	// current piece
+		this.pieceRotation = 1; 			// current piece's position
 		this.next = this.pieces[0];   // next piece
 		this.piecePosition = [this.piece.initialP[0] * this.squareSide,	
 													this.piece.initialP[1] * this.squareSide];
 
-		console.log("Dsad " + this._pieceHeight())
 	
 		this.board = [];
 		for (let i = 0; i < this.boardHeight; i++) {
@@ -127,30 +119,35 @@ class Tetris {
 		this._drawBoard();
 		this._drawPiece();
 	}
-
+	
 	_canMove() {
 		let p = this.piece.rotation[this.pieceRotation];
 		let bWidth = this.boardWidth;
 		let bHeight = this.boardHeight;
-		let pPosX = (this.piecePosition[0] / this.squareSide) + 1;
-		let pPosY = (this.piecePosition[1] / this.squareSide) + 1;
-		let boxSize = this.piece.boxSize[this.pieceRotation];
-		console.log(boxSize)	
-		for (let row = 0; row < p.length; row++) { 
+		let pWidth = this._pieceWidth();
+		let pHeight = this._pieceHeight();
+		let pPosX = (this.piecePosition[0] / this.squareSide);
+		let pPosY = (this.piecePosition[1] / this.squareSide);
+		let sizeLeft = p[0].length;
+
+		for (let row = 0; row < p.length; row++) {
 			for (let col = 0; col < p[row].length; col++) {
-				if (p[row][col] != 7) {
-					if (this._pieceWidth() + pPosX + boxSize[0] <= bWidth) { 
+				if (p[row][col] != 0) {
+					if (pPosX + col + pWidth < bWidth) {
 						this.moveRight = true;
 					} 
-					if ((pPosX - this._pieceWidth()) - boxSize[1] >= -1) {
-						console.log("pPosX " + pPosX + " width " + this._pieceWidth())
-						this.moveLeft = true;
-					}
-					if (this._pieceHeight() + pPosY + boxSize[2] <= bHeight) { 
+					if (pPosY + row + pHeight < bHeight) { 
 						this.moveDown = true;
+					}
+
+					if (col < sizeLeft) {
+						sizeLeft = col;	
 					}
 				}
 			}
+		}
+		if (pPosX + this._pieceWidth() + sizeLeft > pWidth) {
+			this.moveLeft = true;
 		}
 	}
 
@@ -245,7 +242,6 @@ class Tetris {
 		if (event.defaultPrevented) {
 			return;
 		}
-		console.log(game._pieceHeight())
 		game._canMove(); // check available movements otherwise false
 
 		switch(event.code) {
