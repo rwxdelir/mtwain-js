@@ -4,7 +4,6 @@ class Tetris {
 		this.context = this.canvas.getContext('2d');
 		this.frameCounter = 0;
 		this.gameLoop = false;
-
 		this.boardWidth = BOARD_WIDTH;
 		this.boardHeight = BOARD_HEIGHT;
 		this.boardX = 0;
