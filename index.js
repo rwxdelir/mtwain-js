@@ -12,7 +12,7 @@ class Tetris {
 		this.canvas.width = this.boardWidth * this.squareSide;
 		this.canvas.height = this.boardHeight * this.squareSide;
 
-
+    //
 		this.pieces = [
 			{
 				id: 0,
