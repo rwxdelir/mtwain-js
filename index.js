@@ -64,8 +64,8 @@ class Tetris {
       }
     ];
 
-    this.piece = this.pieces[4];  // current piece
-    this.pieceRotation = 3;       // current piece's position
+    this.piece = this.pieces[6];  // current piece
+    this.pieceRotation = 1;       // current piece's position
     this.next = this.pieces[0];   // next piece
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
@@ -103,14 +103,12 @@ class Tetris {
   _process() {
     ++this.frameCounter;
     this._render();
-//    if (this.frameCounter > 40) {
-//      this._canMove();
-//      this.frameCounter = 0;
-//      if (this.moveDown && this._checkCollision(0,1)) {
-//        this.piecePosition[1] += this.squareSide;
-//        this.moveDown = false;
-//      }
-//    }
+    if (this.frameCounter > 40) {
+      this.frameCounter = 0;
+      if (this._checkCollision(0,1)) {
+        this.piecePosition[1] += this.squareSide;
+      }
+    }
   }
 
   _render() {
@@ -119,38 +117,7 @@ class Tetris {
     this._drawPiece();
   }
   
-  _canMove() {
-    let p = this.piece.rotation[this.pieceRotation];
-    let bWidth = this.boardWidth;
-    let bHeight = this.boardHeight;
-    let pWidth = this._pieceWidth();
-    let pHeight = this._pieceHeight();
-    let pPosX = (this.piecePosition[0] / this.squareSide);
-    let pPosY = (this.piecePosition[1] / this.squareSide);
-    let sizeLeft = p[0].length;
-
-    for (let row = 0; row < p.length; row++) {
-      for (let col = 0; col < p[row].length; col++) {
-        if (p[row][col] != 0) {
-          if (pPosX + col + pWidth < bWidth) {
-            this.moveRight = true;
-          } 
-          if (pPosY + row + pHeight < bHeight) { 
-            this.moveDown = true;
-          }
-
-          if (col < sizeLeft) {
-            sizeLeft = col; 
-          }
-        }
-      }
-    }
-    if (pPosX + this._pieceWidth() + sizeLeft > pWidth) {
-      this.moveLeft = true;
-    }
-  }
-
-  _checkCollision (potX, potY) {
+    _checkCollision (potX, potY) {
     let pHeight = this._pieceHeight();
     let pWidth = this._pieceWidth();
     let p = this.piece.rotation[this.pieceRotation];
@@ -159,11 +126,12 @@ class Tetris {
   
     for (let i =0; i < p.length; i++) {
       for (let j =0; j < p[i].length; j++) {
-        console.log("Board[y][x] " + this.board[potY + y + i][potX + x + j])
-        console.log("Potential Position (X, Y) " + (potX + x + j) + " " + (potY + y + i))
         if (p[i][j] != 0) {
+          if (typeof this.board[potY+y+i] === 'undefined' ||
+              typeof this.board[potY+y+i][potX + x + j] === 'undefined') {
+            return false;
+          }
           if (this.board[potY+y+i][potX + x + j] < 7) {
-            console.log(this.board[potY+y+i])
             return false; 
           }
         }
@@ -172,18 +140,6 @@ class Tetris {
     return true;
   }
 
-  _checkLeftCollided (potX, potY) {
-    let pHeight = this._pieceHeight();
-    let pWidth = this._pieceWidth();
-    let p = this.piece.rotation[this.pieceRotation];
-    let x = this.piecePosition[0] / this.squareSide;
-    let y = this.piecePosition[1] / this.squareSide;
-  
-    for (let i =0; i < p.length; i++) {
-      for (let j =0; j < p[i].length; j++) {
-      }
-    }
-  }
   _drawBoard() {
     this.context.fillStyle = '#111111';
     this.context.fillRect(this.boardX, this.boardY, 
@@ -275,25 +231,20 @@ class Tetris {
     if (event.defaultPrevented) {
       return;
     }
-    game._canMove(); // check available movements otherwise false
     switch(event.code) {
       case "ArrowRight":
-        if (game.moveRight && game._checkCollision(1, 0)) {
+        if (game._checkCollision(1, 0)) {
           game.piecePosition[0] += game.squareSide;
-          game.moveRight = false;
         }
         break;
       case "ArrowLeft": 
-        if (game.moveLeft && game._checkCollision(-1, 0)) {
+        if (game._checkCollision(-1, 0)) {
           game.piecePosition[0] -= game.squareSide;
-          game.moveLeft = false;
         }
         break;
       case "ArrowDown": 
-        if (game.moveDown
-          && game._checkCollision(0, 1)){
+        if (game._checkCollision(0, 1)){
           game.piecePosition[1] += game.squareSide;
-          game.moveDown = false;
         }
         break;
     }
