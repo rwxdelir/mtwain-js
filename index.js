@@ -64,9 +64,9 @@ class Tetris {
       }
     ];
 
-    this.piece = this.pieces[6];  // current piece
-    this.pieceRotation = 1;       // current piece's position
-    this.next = this.pieces[0];   // next piece
+    this.next = 0;
+    this.piece = this.pieces[this.next];  // current piece
+    this.pieceRotation = 1;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
 
@@ -84,11 +84,6 @@ class Tetris {
     this.moveLeft = false;
     this.moveRight = false;
     this.moveDown = false;
-    
-    this.board[11][0] = 3;
-    this.board[11][3] = 3;
-    this.board[11][4] = 3;
-    this.board[11][6] = 3;
   }
   
 
@@ -103,10 +98,13 @@ class Tetris {
   _process() {
     ++this.frameCounter;
     this._render();
-    if (this.frameCounter > 40) {
+    if (this.frameCounter > 80) {
       this.frameCounter = 0;
-      if (this._checkCollision(0,1)) {
+      if (this._checkCurrentCollision(0,1)) {
         this.piecePosition[1] += this.squareSide;
+      } else {
+        this._freeze();
+        this._nextPiece();
       }
     }
   }
@@ -116,14 +114,18 @@ class Tetris {
     this._drawBoard();
     this._drawPiece();
   }
-  
-    _checkCollision (potX, potY) {
-    let pHeight = this._pieceHeight();
-    let pWidth = this._pieceWidth();
+
+  _checkCurrentCollision(potX, potY) {
     let p = this.piece.rotation[this.pieceRotation];
+    let pHeight = this._pieceHeight(p);
+    let pWidth = this._pieceWidth(p);
     let x = this.piecePosition[0] / this.squareSide;
     let y = this.piecePosition[1] / this.squareSide;
-  
+
+    return this._checkCollision(p, x, y, potX, potY, pHeight, pWidth);
+  }
+
+  _checkCollision (p, x, y, potX, potY, pHeight, pWidth) {
     for (let i =0; i < p.length; i++) {
       for (let j =0; j < p[i].length; j++) {
         if (p[i][j] != 0) {
@@ -139,13 +141,52 @@ class Tetris {
     }
     return true;
   }
+  
+  _nextRotation() {
+    let rotations = this.piece.rotation;
+    let rotLen = this.piece.rotation.length;
+    let rotIndex = (this.pieceRotation + 1) % rotLen; 
+    let potPiece = rotations[rotIndex];
+    let potPieceWidth = this._pieceWidth(potPiece);
+    let potPieceHeight = this._pieceHeight(potPiece);
+    let x = this.piecePosition[0] / this.squareSide;
+    let y = this.piecePosition[1] / this.squareSide;
+    
+    if (this._checkCollision(potPiece, x, y, 0, 0, potPieceHeight, potPieceWidth)) {
+      this.pieceRotation = rotIndex;
+    }
+  }
+  
+  _nextPiece() {
+    this.next = (this.next + 1) % 6;
+    this.piece = this.pieces[this.next];
+    this.pieceRotation = 0;
+    this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
+                          this.piece.initialP[1] * this.squareSide];
+  }
+
+  _freeze() {
+    let piece = this.piece.rotation[this.pieceRotation];
+    let x = this.piecePosition[0] / this.squareSide;
+    let y = this.piecePosition[1] / this.squareSide;
+
+    for (let i = 0; i < piece.length; i++) {
+      for (let j = 0; j < piece[i].length; j++) {
+        if (piece[i][j] != 0) {
+          this.board[i + y][j + x] = this.piece.id;
+        }
+      }
+    }
+
+    console.log(this.board)
+  }
 
   _drawBoard() {
     this.context.fillStyle = '#111111';
     this.context.fillRect(this.boardX, this.boardY, 
                           this.boardWidth * this.squareSide, 
                           this.boardHeight * this.squareSide
-    ); 
+    );
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
         if (this.board[i][j] < 7) {
@@ -182,8 +223,8 @@ class Tetris {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  _pieceWidth() {
-    let p = this.piece.rotation[this.pieceRotation];
+  _pieceWidth(piece) {
+    let p = piece;
     let entry = [];
     let acc = 0;
     for (let i = 0; i < p.length; i++) {
@@ -204,8 +245,8 @@ class Tetris {
     return acc;
   }
 
-  _pieceHeight() {
-    let p = this.piece.rotation[this.pieceRotation];
+  _pieceHeight(piece) {
+    let p = piece;
     let acc = 0;
     let f = true
     for (let i = 0; i < p.length; i++) {
@@ -233,19 +274,26 @@ class Tetris {
     }
     switch(event.code) {
       case "ArrowRight":
-        if (game._checkCollision(1, 0)) {
+        if (game._checkCurrentCollision(1, 0)) {
           game.piecePosition[0] += game.squareSide;
         }
         break;
       case "ArrowLeft": 
-        if (game._checkCollision(-1, 0)) {
+        if (game._checkCurrentCollision(-1, 0)) {
           game.piecePosition[0] -= game.squareSide;
         }
         break;
       case "ArrowDown": 
-        if (game._checkCollision(0, 1)){
+        if (game._checkCurrentCollision(0, 1)){ 
           game.piecePosition[1] += game.squareSide;
+        } else {
+          game._freeze();
+          game._nextPiece();
         }
+        break;
+
+      case "ArrowUp": 
+        game._nextRotation();
         break;
     }
 
