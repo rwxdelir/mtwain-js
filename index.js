@@ -12,6 +12,7 @@ class Tetris {
     this.canvas.width = this.boardWidth * this.squareSide;
     this.canvas.height = this.boardHeight * this.squareSide;
   
+    this.removeTurn = []; 
     this.pieces = [
       {
         id: 0,
@@ -94,11 +95,35 @@ class Tetris {
       await this._sleep();
     } while(this.gameLoop);
   }
-  
   _process() {
     ++this.frameCounter;
     this._render();
+    if (this.frameCounter == 20) {
+      let flag = true;
+      for (let i = 0; i < this.boardHeight; i++) {
+        for (let j = 0; j < this.boardWidth; j++) {
+          if (this.board[i][j] < 7 && flag) {
+          } else { 
+            flag = false
+          } 
+        }
+        if (flag) { 
+          this.removeTurn.push(i);
+          this.context.fillStyle = "purple";
+          this.context.fillRect(this.boardX, 
+            this.boardY + (i * this.squareSide),
+            this.squareSide * i, this.squareSide);
+        }
+        flag = true;
+      }
+    }
+
     if (this.frameCounter > 80) {
+      for (let i = 0; i < this.removeTurn.length; i++) {
+        this._clearLine(this.removeTurn[i]);
+      }
+      this.removeTurn = [];
+
       this.frameCounter = 0;
       if (this._checkCurrentCollision(0,1)) {
         this.piecePosition[1] += this.squareSide;
@@ -158,7 +183,7 @@ class Tetris {
   }
   
   _nextPiece() {
-    this.next = (this.next + 1) % 6;
+    this.next = (this.next + 1) % 7;
     this.piece = this.pieces[this.next];
     this.pieceRotation = 0;
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
@@ -178,7 +203,6 @@ class Tetris {
       }
     }
 
-    console.log(this.board)
   }
 
   _drawBoard() {
@@ -199,7 +223,23 @@ class Tetris {
       }
     }
   }
-  
+
+  _clearLine(lineIndex) {
+    for (let i = 0; i < this.boardHeight - 1; i++) {
+      for (let j = 0; j < this.boardWidth - 1; j++) {
+        if (i === lineIndex) {
+          this.board[i][j] = 7;
+        }
+      }
+    }
+
+    for (let i = lineIndex; i > 0; i--) {
+      for (let j = 0; j < this.boardWidth; j++) {
+        this.board[i][j] = this.board[i-1][j];
+      }
+    }
+  }
+
   _drawPiece() {
     let piece = this.piece.rotation[this.pieceRotation];
     for (let i = 0; i < piece.length; i++) {
@@ -222,7 +262,7 @@ class Tetris {
   _updatePiece() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
-
+  
   _pieceWidth(piece) {
     let p = piece;
     let entry = [];
