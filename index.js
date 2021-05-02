@@ -11,10 +11,12 @@ class Tetris {
     this.squareSide = 30; // square size
     this.canvas.width = this.boardWidth * this.squareSide;
     this.canvas.height = this.boardHeight * this.squareSide;
-  
     this.removeTurn = []; 
     this.score = 0;
+
     this.pauseState = false;
+    this.endState = false;
+
     this.pieces = [
       {
         id: 0,
@@ -75,7 +77,7 @@ class Tetris {
 
   
     this.board = [];
-    for (let i = 0; i < this.boardHeight; i++) {
+    for (let i = 0; i < this.boardHeight + 2; i++) {
       const row = [];
       for (let j = 0; j < this.boardWidth; j++) {
         row.push(7);
@@ -99,50 +101,48 @@ class Tetris {
   }
 
   _process() {
+    if (this.endState) {
+      this.pauseState = true;
+    }
     if (this.pauseState) {
-     
     } else {
       ++this.frameCounter;
-      this._render();
-      if (this.frameCounter == 20) {
-        let flag = true;
-        for (let i = 0; i < this.boardHeight; i++) {
-          for (let j = 0; j < this.boardWidth; j++) {
-            if (this.board[i][j] < 7 && flag) {
-            } else { flag = false } 
-          }
-          if (flag) { 
-            this.removeTurn.push(i);
-          }
-          flag = true;
-        }
 
+      this._render();
+      let flag = true;
+      for (let i = 0; i < this.boardHeight; i++) {
+        for (let j = 0; j < this.boardWidth; j++) {
+          if (this.board[i][j] < 7 && flag) {
+          } else { flag = false } 
+        }
+        if (flag) { 
+          this.removeTurn.push(i);
+        }
+        flag = true;
+      }
+      for (let i = 0; i < this.removeTurn.length; i++) {
+        this._clearLine(this.removeTurn[i]);
       }
 
+      switch (this.removeTurn.length) {
+          case 0: 
+            break;
+          case 1:
+            this.score += 40;
+            break;
+          case 2: 
+            this.score += 100;
+            break;
+          case 3: 
+            this.score += 300;
+            break;
+          case 4: 
+            this.score += 1200;
+            break;
+      }
+
+      this.removeTurn = [];     
       if (this.frameCounter > 80) {
-        switch (this.removeTurn.length) {
-            case 0: 
-              break;
-            case 1:
-              this.score += 40;
-              break;
-            case 2: 
-              this.score += 100;
-              break;
-            case 3: 
-              this.score += 300;
-              break;
-            case 4: 
-              this.score += 1200;
-              break;
-        }
-
-        for (let i = 0; i < this.removeTurn.length; i++) {
-          this._clearLine(this.removeTurn[i]);
-        }
-
-        this.removeTurn = [];
-        
         this.frameCounter = 0;
         if (this._checkCurrentCollision(0,1)) {
           this.piecePosition[1] += this.squareSide;
@@ -192,12 +192,14 @@ class Tetris {
     for (let i =0; i < p.length; i++) {
       for (let j =0; j < p[i].length; j++) {
         if (p[i][j] != 0) {
-          if (typeof this.board[potY+y+i] === 'undefined' ||
-              typeof this.board[potY+y+i][potX + x + j] === 'undefined') {
+          if (potX+x+j > this.boardWidth - 1 
+            || x + potX + j < 0
+            || potY + y + i > this.boardHeight - 1 
+            || (typeof this.board[potY+y+i] != 'undefined'
+               && typeof this.board[potY+y+i][potX+x+j] != 'undefined' 
+               && this.board[potY+y+i][potX+x+j] < 7)
+          ) {
             return false;
-          }
-          if (this.board[potY+y+i][potX + x + j] < 7) {
-            return false; 
           }
         }
       }
@@ -222,25 +224,32 @@ class Tetris {
   
   _nextPiece() {
     this.next = (this.next + 1) % 7;
-    this.piece = this.pieces[this.next];
-    this.pieceRotation = 0;
-    this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
-                          this.piece.initialP[1] * this.squareSide];
+    let depth = this._depth();
+    let nextPiece = this.pieces[this.next];
+    if (depth > 0 && !this.endState) { 
+      this.piece = nextPiece;
+      this.pieceRotation = 0;
+      this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
+                            this.piece.initialP[1] * this.squareSide];
+    }
   }
 
   _freeze() {
     let piece = this.piece.rotation[this.pieceRotation];
     let x = this.piecePosition[0] / this.squareSide;
     let y = this.piecePosition[1] / this.squareSide;
-
     for (let i = 0; i < piece.length; i++) {
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
-          this.board[i + y][j + x] = this.piece.id;
+          if (typeof this.board[i + y] != 'undefined'
+              && typeof this.board[i + y][j + x] != 'undefined') {
+            this.board[i + y][j + x] = this.piece.id;
+          } else {
+            this.endState = true;
+          }
         }
       }
     }
-
   }
 
   _drawBoard() {
@@ -311,6 +320,20 @@ class Tetris {
     this.context.fillText("Score: " + this.score, 5, 30); 
   }
   
+  _depth() {
+    let depth = this.boardHeight;
+    let flag = true;
+    for (let i = 0; i < this.boardHeight; i++) {
+      for (let j = 0; j < this.boardWidth; j++) {
+        if (this.board[i][j] < 7 && flag) {
+          depth = i;
+          flag = false;
+        }
+      }
+    }
+    return depth;
+  }
+
   _pieceWidth(piece) {
     let p = piece;
     let entry = [];
@@ -332,7 +355,7 @@ class Tetris {
     }
     return acc;
   }
-
+  
   _pieceHeight(piece) {
     let p = piece;
     let acc = 0;
@@ -386,8 +409,21 @@ class Tetris {
           game._nextRotation();
         }
         break;
-      case "Space":
+      case "ShiftLeft":
         game._pause();
+        break;
+      
+      // Hard drop
+      case "Space":
+        if (!game.pauseState) {
+          while (game._checkCurrentCollision(0, 1)) {
+            game.piecePosition[1] += game.squareSide;
+          }
+          if (!game._checkCurrentCollision(0, 1)) {
+            game._freeze();
+            game._nextPiece();
+          }
+        }
         break;
     }
 
