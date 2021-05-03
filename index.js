@@ -12,6 +12,7 @@ class Tetris {
     this.canvas.height = this.boardHeight * this.squareSide;
     this.removeTurn = []; 
     this.score = 0;
+    this.level = 1;
 
     this.pauseState = false;
     this.endState = false;
@@ -165,7 +166,28 @@ class Tetris {
               this.score += 1200;
               break;
         }
+        
+        if (this.score < 200) {
+          this.level = 1;
+        } else if (this.score > 500) {
+          this.level = 2;
+        } else if (this.score > 2000) {
+          this.level = 3;
+        } else if (this.score > 3000) {
+          this.level = 4;
+        } else if (this.score > 4000) {
+          this.level = 5;
+        } else if (this.score > 5000) {
+          this.level = 6;
+        } else if (this.score > 6000) {
+          this.level = 7;
+        }
 
+        this.level = 2;
+          
+        // Scale frame counter 
+        this.frameCounter += this.level - 1;
+        
         this.removeTurn = [];     
         if (this.frameCounter > 80) {
           this.frameCounter = 0;
@@ -358,7 +380,7 @@ class Tetris {
            this._drawSquare(
            this.shadowPosition[0] + j * this.squareSide,
            dropY - 30 + this.piecePosition[1] + i * this.squareSide,
-           'grey');
+           '#181818');
         }
       }                                              
     }
