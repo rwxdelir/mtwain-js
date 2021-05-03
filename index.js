@@ -74,7 +74,12 @@ class Tetris {
     this.pieceRotation = 1;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
+    this.shadowPiece = this.piece;
+    this.shadowRotation = this.pieceRotation;
+    this.shadowPosition = this.piecePosition; 
 
+     
+        
   
     this.board = [];
     for (let i = 0; i < this.boardHeight + 2; i++) {
@@ -108,47 +113,50 @@ class Tetris {
     } else {
       ++this.frameCounter;
 
+
       this._render();
-      let flag = true;
-      for (let i = 0; i < this.boardHeight; i++) {
-        for (let j = 0; j < this.boardWidth; j++) {
-          if (this.board[i][j] < 7 && flag) {
-          } else { flag = false } 
+      if (this.frameCounter > 10) {  
+        let flag = true;
+        for (let i = 0; i < this.boardHeight; i++) {
+          for (let j = 0; j < this.boardWidth; j++) {
+            if (this.board[i][j] < 7 && flag) {
+            } else { flag = false } 
+          }
+          if (flag) { 
+            this.removeTurn.push(i);
+          }
+          flag = true;
         }
-        if (flag) { 
-          this.removeTurn.push(i);
+        for (let i = 0; i < this.removeTurn.length; i++) {
+          this._clearLine(this.removeTurn[i]);
         }
-        flag = true;
-      }
-      for (let i = 0; i < this.removeTurn.length; i++) {
-        this._clearLine(this.removeTurn[i]);
-      }
 
-      switch (this.removeTurn.length) {
-          case 0: 
-            break;
-          case 1:
-            this.score += 40;
-            break;
-          case 2: 
-            this.score += 100;
-            break;
-          case 3: 
-            this.score += 300;
-            break;
-          case 4: 
-            this.score += 1200;
-            break;
-      }
+        switch (this.removeTurn.length) {
+            case 0: 
+              break;
+            case 1:
+              this.score += 40;
+              break;
+            case 2: 
+              this.score += 100;
+              break;
+            case 3: 
+              this.score += 300;
+              break;
+            case 4: 
+              this.score += 1200;
+              break;
+        }
 
-      this.removeTurn = [];     
-      if (this.frameCounter > 80) {
-        this.frameCounter = 0;
-        if (this._checkCurrentCollision(0,1)) {
-          this.piecePosition[1] += this.squareSide;
-        } else {
-          this._freeze();
-          this._nextPiece();
+        this.removeTurn = [];     
+        if (this.frameCounter > 80) {
+          this.frameCounter = 0;
+          if (this._checkCurrentCollision(0,1)) {
+            this.piecePosition[1] += this.squareSide;
+          } else {
+            this._freeze();
+            this._nextPiece();
+          }
         }
       }
     }
@@ -158,6 +166,7 @@ class Tetris {
     this._updatePiece();
     this._drawBoard();
     this._drawPiece();
+    this._drawShadowPiece();
     this._drawText("SCORE: " + this.score);
         
     // Clearing line animation
@@ -184,6 +193,16 @@ class Tetris {
     let pWidth = this._pieceWidth(p);
     let x = this.piecePosition[0] / this.squareSide;
     let y = this.piecePosition[1] / this.squareSide;
+
+    return this._checkCollision(p, x, y, potX, potY, pHeight, pWidth);
+  }
+
+  _checkShadowCollision(potX, potY) {
+    let p = this.shadowPiece.rotation[this.shadowRotation];
+    let pHeight = this._pieceHeight(p);
+    let pWidth = this._pieceWidth(p);
+    let x = this.shadowPosition[0] / this.squareSide;
+    let y = this.shadowPosition[1] / this.squareSide;
 
     return this._checkCollision(p, x, y, potX, potY, pHeight, pWidth);
   }
@@ -219,6 +238,7 @@ class Tetris {
     
     if (this._checkCollision(potPiece, x, y, 0, 0, potPieceHeight, potPieceWidth)) {
       this.pieceRotation = rotIndex;
+      this.shadowRotation = this.pieceRotation;
     }
   }
   
@@ -231,6 +251,9 @@ class Tetris {
       this.pieceRotation = 0;
       this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                             this.piece.initialP[1] * this.squareSide];
+      this.shadowPiece = nextPiece;
+      this.shadowRotation = this.pieceRotation;
+      this.shadowPosition = this.piecePosition;
     }
   }
 
@@ -298,6 +321,25 @@ class Tetris {
             this.piece.color);
         }
       }
+    }
+  }
+
+  _drawShadowPiece() {
+    let piece = this.shadowPiece.rotation[this.shadowRotation];
+    let dropY = 0;
+    while (this._checkShadowCollision(0, dropY / this.squareSide)) {
+      dropY += this.squareSide;
+    }
+
+    for (let i = 0; i < piece.length; i++) { 
+      for (let j = 0; j < piece[i].length; j++) {
+        if (piece[i][j] != 0) {
+           this._drawSquare(
+           this.shadowPosition[0] + j * this.squareSide,
+           dropY - 30 + this.piecePosition[1] + i * this.squareSide,
+           'white');
+        }
+      }                                              
     }
   }
 
