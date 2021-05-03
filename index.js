@@ -3,7 +3,6 @@ class Tetris {
     this.canvas = canvas;
     this.context = this.canvas.getContext('2d');
     this.frameCounter = 0;
-    this.gameLoop = false;
     this.boardWidth = BOARD_WIDTH;
     this.boardHeight = BOARD_HEIGHT;
     this.boardX = 0;
@@ -89,13 +88,33 @@ class Tetris {
       }
       this.board.push(row);
     }
-
-    // flags for move
-    this.moveLeft = false;
-    this.moveRight = false;
-    this.moveDown = false;
   }
   
+  reset() {
+    this.frameCounter = 0;
+    this.removeTurn = []; 
+    this.score = 0;
+
+    this.pauseState = false;
+    this.endState = false;
+    this.board = [];
+    for (let i = 0; i < this.boardHeight + 2; i++) {
+      const row = [];
+      for (let j = 0; j < this.boardWidth; j++) {
+        row.push(7);
+      }
+      this.board.push(row);
+    }
+
+    this.next = 0;
+    this.piece = this.pieces[this.next];  // current piece
+    this.pieceRotation = 1;               // current piece's position
+    this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
+                          this.piece.initialP[1] * this.squareSide];
+    this.shadowPiece = this.piece;
+    this.shadowRotation = this.pieceRotation;
+    this.shadowPosition = this.piecePosition; 
+  }
 
   async play() {
     this.gameLoop = true;
@@ -107,12 +126,11 @@ class Tetris {
 
   _process() {
     if (this.endState) {
-      this.pauseState = true;
+      this.reset();
     }
     if (this.pauseState) {
     } else {
       ++this.frameCounter;
-
 
       this._render();
       if (this.frameCounter > 10) {  
@@ -165,8 +183,8 @@ class Tetris {
   _render() {
     this._updatePiece();
     this._drawBoard();
-    this._drawPiece();
     this._drawShadowPiece();
+    this._drawPiece();
     this._drawText("SCORE: " + this.score);
         
     // Clearing line animation
@@ -246,6 +264,9 @@ class Tetris {
     this.next = (this.next + 1) % 7;
     let depth = this._depth();
     let nextPiece = this.pieces[this.next];
+    if (depth === 0) {
+      this.endState = true;
+    }
     if (depth > 0 && !this.endState) { 
       this.piece = nextPiece;
       this.pieceRotation = 0;
@@ -337,7 +358,7 @@ class Tetris {
            this._drawSquare(
            this.shadowPosition[0] + j * this.squareSide,
            dropY - 30 + this.piecePosition[1] + i * this.squareSide,
-           'white');
+           'grey');
         }
       }                                              
     }
