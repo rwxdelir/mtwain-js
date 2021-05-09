@@ -10,12 +10,14 @@ class Tetris {
     this.squareSide = 30; // square size
     this.canvas.width = this.boardWidth * this.squareSide;
     this.canvas.height = this.boardHeight * this.squareSide;
-    this.removeTurn = []; 
+    //this.removeTurn = new Set(); 
     this.score = 0;
     this.level = 1;
 
+    this.clearingDelay = 20;
     this.pauseState = false;
     this.endState = false;
+    this.clearLineState = false;
 
     this.pieces = [
       {
@@ -93,7 +95,7 @@ class Tetris {
   
   reset() {
     this.frameCounter = 0;
-    this.removeTurn = []; 
+    //this.removeTurn = []; 
     this.score = 0;
 
     this.pauseState = false;
@@ -132,64 +134,39 @@ class Tetris {
     if (this.pauseState) {
     } else {
       ++this.frameCounter;
+        
+      this._clearLine();
+
+      if (this.clearLineState) { --this.clearingDelay;
+      }
 
       this._render();
-      if (this.frameCounter > 10) {  
-        let flag = true;
-        for (let i = 0; i < this.boardHeight; i++) {
-          for (let j = 0; j < this.boardWidth; j++) {
-            if (this.board[i][j] < 7 && flag) {
-            } else { flag = false } 
-          }
-          if (flag) { 
-            this.removeTurn.push(i);
-          }
-          flag = true;
-        }
-        for (let i = 0; i < this.removeTurn.length; i++) {
-          this._clearLine(this.removeTurn[i]);
-        }
-
-        switch (this.removeTurn.length) {
-            case 0: 
-              break;
-            case 1:
-              this.score += 40;
-              break;
-            case 2: 
-              this.score += 100;
-              break;
-            case 3: 
-              this.score += 300;
-              break;
-            case 4: 
-              this.score += 1200;
-              break;
-        }
-        
-        if (this.score < 200) {
+      if (this.frameCounter > 10) { 
+        if (this.score <= 200) {
           this.level = 1;
-        } else if (this.score > 500) {
+        }  
+        if (this.score >= 500) {
           this.level = 2;
-        } else if (this.score > 2000) {
+        } 
+        if (this.score >= 1000) {
           this.level = 3;
-        } else if (this.score > 3000) {
+        } 
+        if (this.score >= 1500) {
           this.level = 4;
-        } else if (this.score > 4000) {
+        } 
+        if (this.score >= 2500) {
           this.level = 5;
-        } else if (this.score > 5000) {
+        } 
+        if (this.score >= 3000) {
           this.level = 6;
-        } else if (this.score > 6000) {
+        } 
+        if (this.score >= 4000) {
           this.level = 7;
         }
 
-        this.level = 2;
-          
-        // Scale frame counter 
-        this.frameCounter += this.level - 1;
-        
-        this.removeTurn = [];     
-        if (this.frameCounter > 80) {
+        this.level = 3;
+
+        if (this.frameCounter + (this.level * 2) > 50) {
           this.frameCounter = 0;
           if (this._checkCurrentCollision(0,1)) {
             this.piecePosition[1] += this.squareSide;
@@ -207,16 +184,7 @@ class Tetris {
     this._drawBoard();
     this._drawShadowPiece();
     this._drawPiece();
-    this._drawText("SCORE: " + this.score);
-        
-    // Clearing line animation
-    for (let i = 0; i < this.removeTurn.length; i++) {
-      this.context.fillStyle = "purple";
-      this.context.fillRect(this.boardX, 
-        this.boardY + (this.removeTurn[i] * this.squareSide),
-        this.boardWidth * this.squareSide, 
-        this.squareSide);
-    }
+    this._drawText();
   }
 
   _pause() {
@@ -324,6 +292,8 @@ class Tetris {
                           this.boardWidth * this.squareSide, 
                           this.boardHeight * this.squareSide
     );
+
+
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
         if (this.board[i][j] < 7) {
@@ -332,29 +302,70 @@ class Tetris {
             this.boardY + this.squareSide * i,
             this.pieces[this.board[i][j]].color
           )
+          this.context.strokeStyle = 'red';
+          this.context.strokeRect( 
+            this.boardX + this.squareSide * j, 
+            this.boardY + this.squareSide * i,
+            this.squareSide, this.squareSide);
         }
       }
     }
   }
 
-  _clearLine(lineIndex) {
-    for (let i = 0; i < this.boardHeight - 1; i++) {
+
+  _clearLine() {
+    let removeTurn = [];
+    for (let i = 0; i < this.boardHeight; i++) {
       for (let j = 0; j < this.boardWidth; j++) {
-        if (i === lineIndex) {
-          this.board[i][j] = 7;
-        }
+        if (this.board[i][j] == 7) { break;} 
+        else if (j == this.boardWidth - 1) {removeTurn.push(i);}
       }
     }
 
-    for (let i = lineIndex; i > 0; i--) {
-      for (let j = 0; j < this.boardWidth; j++) {
-        this.board[i][j] = this.board[i-1][j];
+    if (removeTurn.length > 0)  { this.clearLineState = true;}
+    if (this.clearLineState) { --this.clearingDelay;}
+
+    if (this.clearingDelay >= 1) {
+      for (let i = 0; i < removeTurn.length; i++) {
+        for (let j = 0; j < this.boardWidth; j++) { 
+          this.board[removeTurn[i]][j] = Math.floor(Math.random() * 6);
+        }
       }
-    }
+    } else {
+      for (let q = 0; q < removeTurn.length; q++) {
+        for (let i = removeTurn[q]; i > 0; i--) {
+          for (let j = 0; j < this.boardWidth; j++) {
+            this.board[i][j] = this.board[i-1][j];
+          }
+        }
+      }
+      this.clearLineState = false;
+      this.clearingDelay = 20;
+
+      switch (removeTurn.length) {
+         case 0: 
+           break;
+         case 1:
+           this.score += 40;
+           break;
+         case 2: 
+           this.score += 100;
+           break;
+         case 3: 
+           this.score += 300;
+           break;
+         case 4: 
+           this.score += 1200;
+           break;
+         default: 
+           break;
+      }
+    } 
   }
 
   _drawPiece() {
     let piece = this.piece.rotation[this.pieceRotation];
+
     for (let i = 0; i < piece.length; i++) {
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
@@ -388,6 +399,9 @@ class Tetris {
 
   _drawSquare(x, y, color) {
     this.context.fillStyle = color;
+    this.context.shadowColor = 'red';
+    this.context.shadowOffsetX = 5;
+    this.context.shadowOffsetY = 5;
     this.context.fillRect(x, y, this.squareSide, this.squareSide);
   }
 
@@ -395,7 +409,7 @@ class Tetris {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
   
-  _drawText(text) {
+  _drawText() {
     this.context.shadowOffsetX = 2;
     this.context.shadowOffsetY = 2;
     this.context.shadowBlur = 2;
@@ -404,7 +418,7 @@ class Tetris {
     this.context.font = '30px Allan, Helvetica, Arial, sans-serif';
     this.context.fillText("Score: " + this.score, 5, 30); 
   }
-  
+
   _depth() {
     let depth = this.boardHeight;
     let flag = true;
