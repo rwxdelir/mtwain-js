@@ -1,8 +1,8 @@
 const Z_ROT = [
     [
-      [ 0, 0, 0 ], 
-      [ 1, 1, 0 ], 
-      [ 0, 1, 1 ]
+      [ 0, 0, 0, 0 ], 
+      [ 1, 1, 0, 0 ], 
+      [ 0, 1, 1, 0 ]
     ], 
     [
       [ 0, 0, 1 ], 
@@ -118,11 +118,11 @@ const I_ROT = [
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
 
-const Z_INI_POS = [0, -2];
-const S_INI_POS = [0, -2];
-const O_INI_POS = [0, -1];
-const L_INI_POS = [0, -2];
-const J_INI_POS = [0, -2];
-const T_INI_POS = [0, -2];
-const I_INI_POS = [0, -3]; // 0
+const Z_INI_POS = [3, -2];
+const S_INI_POS = [3, -2];
+const O_INI_POS = [3, -1];
+const L_INI_POS = [3, -2];
+const J_INI_POS = [3, -2];
+const T_INI_POS = [3, -2];
+const I_INI_POS = [3, -3]; // 0
 

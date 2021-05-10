@@ -1,6 +1,20 @@
 html, body {
 	width: 100%;
 	height: 100%;
+  background: #528B8B;
 }
+
+#game-score {
+  position: absolute;
+  top: 10px;
+  color: #7FDBFF;
+  font: 30px Allan, Helvetica, Arial, sans-serif;
+  background: #2F4F4F; 
+  width: 200px;
+  text-align: center;
+  height: 40px;
+}
+
+
 
 

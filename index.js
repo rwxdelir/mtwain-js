@@ -8,16 +8,20 @@ class Tetris {
     this.boardX = 0;
     this.boardY = 0;
     this.squareSide = 30; // square size
-    this.canvas.width = this.boardWidth * this.squareSide;
-    this.canvas.height = this.boardHeight * this.squareSide;
-    //this.removeTurn = new Set(); 
+    this.canvas.width = (this.boardWidth * this.squareSide);
+    this.canvas.height = (this.boardHeight * this.squareSide);
     this.score = 0;
     this.level = 1;
-
-    this.clearingDelay = 20;
+    
+    this.clearingDelay = 40;
     this.pauseState = false;
     this.endState = false;
     this.clearLineState = false;
+    this.scorePlaceholder = document.getElementById('game-score');
+    this.nextPiecePlaceholder = document.getElementById('game-next-piece');
+    this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
+    this.nextPiecePlaceholder.width = 120;
+    this.nextPiecePlaceholder.height = 120;
 
     this.pieces = [
       {
@@ -128,17 +132,17 @@ class Tetris {
   }
 
   _process() {
+    window.onresize = this._alignBoard();
+
     if (this.endState) {
       this.reset();
     }
     if (this.pauseState) {
     } else {
       ++this.frameCounter;
-        
       this._clearLine();
 
-      if (this.clearLineState) { --this.clearingDelay;
-      }
+      if (this.clearLineState) { --this.clearingDelay;}
 
       this._render();
       if (this.frameCounter > 10) { 
@@ -184,7 +188,8 @@ class Tetris {
     this._drawBoard();
     this._drawShadowPiece();
     this._drawPiece();
-    this._drawText();
+    this._drawScore();
+    this._drawNextPiece();
   }
 
   _pause() {
@@ -300,7 +305,8 @@ class Tetris {
           this._drawSquare(
             this.boardX + this.squareSide * j,
             this.boardY + this.squareSide * i,
-            this.pieces[this.board[i][j]].color
+            this.pieces[this.board[i][j]].color,
+            this.context
           )
           this.context.strokeStyle = 'red';
           this.context.strokeRect( 
@@ -332,6 +338,7 @@ class Tetris {
         }
       }
     } else {
+      
       for (let q = 0; q < removeTurn.length; q++) {
         for (let i = removeTurn[q]; i > 0; i--) {
           for (let j = 0; j < this.boardWidth; j++) {
@@ -340,7 +347,7 @@ class Tetris {
         }
       }
       this.clearLineState = false;
-      this.clearingDelay = 20;
+      this.clearingDelay = 40;
 
       switch (removeTurn.length) {
          case 0: 
@@ -370,9 +377,9 @@ class Tetris {
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
           this._drawSquare(
-            this.piecePosition[0] + j * this.squareSide,
-            this.piecePosition[1] + i * this.squareSide, 
-            this.piece.color);
+            (this.piecePosition[0] + j * this.squareSide) + this.boardX,
+            (this.piecePosition[1] + i * this.squareSide) + this.boardY, 
+            this.piece.color, this.context);
         }
       }
     }
@@ -389,34 +396,58 @@ class Tetris {
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
            this._drawSquare(
-           this.shadowPosition[0] + j * this.squareSide,
-           dropY - 30 + this.piecePosition[1] + i * this.squareSide,
-           '#181818');
+           (this.shadowPosition[0] + j * this.squareSide + this.boardX),
+           (dropY - 30 + this.piecePosition[1] + i * this.squareSide) + this.boardY,
+           '#181818', this.context);
         }
       }                                              
     }
   }
 
-  _drawSquare(x, y, color) {
-    this.context.fillStyle = color;
-    this.context.shadowColor = 'red';
-    this.context.shadowOffsetX = 5;
-    this.context.shadowOffsetY = 5;
-    this.context.fillRect(x, y, this.squareSide, this.squareSide);
+  _drawNextPiece() {
+    this.nextPieceCtx.clearRect(0, 0, 
+      this.nextPiecePlaceholder.width, 
+      this.nextPiecePlaceholder.height);
+
+    let piece = this.pieces[this.next].rotation[0];
+    console.log(piece)
+    for (let i = 0; i < piece.length; i++) { 
+      for (let j = 0; j < piece[i].length; j++) {
+        if (piece[i][j] != 0) {
+           this._drawSquare(
+           (j * this.squareSide),
+           (i * this.squareSide),
+           'white', 
+           this.nextPieceCtx);
+        }
+      }                                              
+    } 
+
+  }
+  
+  _drawSquare(x, y, color, context) {
+    context.fillStyle = color;
+    context.shadowColor = 'red';
+    context.shadowOffsetX = 5;
+    context.shadowOffsetY = 5;
+    context.fillRect(x, y, this.squareSide, this.squareSide);
   }
 
   _updatePiece() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
   
-  _drawText() {
-    this.context.shadowOffsetX = 2;
-    this.context.shadowOffsetY = 2;
-    this.context.shadowBlur = 2;
-    this.context.shadowColor = 'rgba(0, 0, 0, 0.5)';
-
-    this.context.font = '30px Allan, Helvetica, Arial, sans-serif';
-    this.context.fillText("Score: " + this.score, 5, 30); 
+  _drawScore() {
+    let randColor = this.pieces[Math.floor(Math.random() * 6)].color;
+    this.scorePlaceholder.innerText = "SCORE " + this.score;
+    this.scorePlaceholder.style.right = `${(window.innerWidth - this.canvas.width) / 2 - 180}px`;
+    if (this.clearLineState) {
+      this.scorePlaceholder.style.color = randColor;
+      this.scorePlaceholder.style.background = 'pink';
+    } else {
+      this.scorePlaceholder.style.background = '#2F4F4F';
+      this.scorePlaceholder.style.color = '#7FDBFF';
+    }
   }
 
   _depth() {
@@ -470,8 +501,13 @@ class Tetris {
     }
     return acc;
   }
-
+  
   _sleep() {return new Promise(requestAnimationFrame); }
+
+  _alignBoard() {
+    this.canvas.style.left = `${(window.innerWidth - this.canvas.width) / 2}px`;
+    this.canvas.style.position = "absolute";
+  }
 }
 
 (() => {
