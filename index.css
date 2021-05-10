@@ -15,6 +15,10 @@ html, body {
   height: 40px;
 }
 
+#game-next-piece-title {
+  position: relative;
+  font: 30px Allan, Helvetica, Arial, sans-serif;
+}
 
 
 

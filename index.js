@@ -19,9 +19,11 @@ class Tetris {
     this.clearLineState = false;
     this.scorePlaceholder = document.getElementById('game-score');
     this.nextPiecePlaceholder = document.getElementById('game-next-piece');
+    this.nextPieceContainer = document.getElementById('game-next-piece-container');
+
     this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
     this.nextPiecePlaceholder.width = 120;
-    this.nextPiecePlaceholder.height = 120;
+    this.nextPiecePlaceholder.height = 80;
 
     this.pieces = [
       {
@@ -29,55 +31,64 @@ class Tetris {
         name: 'z',
         color: '#0074D9',
         rotation: Z_ROT,
-        initialP: Z_INI_POS
+        initialP: Z_INI_POS,
+        initialN: Z_NEXT_POS 
       },
       {
         id: 1,
         name: 's',
         color: '#7FDBFF',
         rotation: S_ROT,
-        initialP: S_INI_POS
+        initialP: S_INI_POS,
+        initialN: S_NEXT_POS 
       },
       {
         id: 2,
         name: 'o',
         color: '#FFDC00',
         rotation: O_ROT,
-        initialP: O_INI_POS
+        initialP: O_INI_POS,
+        initialN: O_NEXT_POS 
       },
       {
         id: 3,
         name: 'l',
         color: '#FF4136',
         rotation: L_ROT,
-        initialP: L_INI_POS
+        initialP: L_INI_POS,
+        initialN: L_NEXT_POS  
+
       },
       {
         id: 4,
         name: 'j',
         color: '#85144b',
         rotation: J_ROT,
-        initialP: J_INI_POS
+        initialP: J_INI_POS,
+        initialN: J_NEXT_POS 
       },
       {
         id: 5,
         name: 't',
         color: '#3D9970',
         rotation: T_ROT,
-        initialP: T_INI_POS
+        initialP: T_INI_POS,
+        initialN: T_NEXT_POS 
       },
       {
         id: 6,
         name: 'i',
         color: '#AAAAAA',
         rotation: I_ROT,
-        initialP: I_INI_POS
+        initialP: I_INI_POS,
+        initialN: I_NEXT_POS 
       }
     ];
 
-    this.next = 0;
-    this.piece = this.pieces[this.next];  // current piece
-    this.pieceRotation = 1;               // current piece's position
+    this.next = Math.floor(Math.random() * 7);
+    this.next = Math.floor(Math.random() * 7);
+    this.piece = this.pieces[0];  // current piece
+    this.pieceRotation = 0;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
     this.shadowPiece = this.piece;
@@ -113,9 +124,9 @@ class Tetris {
       this.board.push(row);
     }
 
-    this.next = 0;
+    this.next = Math.floor(Math.random() * 7);
     this.piece = this.pieces[this.next];  // current piece
-    this.pieceRotation = 1;               // current piece's position
+    this.pieceRotation = 0;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
     this.shadowPiece = this.piece;
@@ -202,25 +213,21 @@ class Tetris {
 
   _checkCurrentCollision(potX, potY) {
     let p = this.piece.rotation[this.pieceRotation];
-    let pHeight = this._pieceHeight(p);
-    let pWidth = this._pieceWidth(p);
     let x = this.piecePosition[0] / this.squareSide;
     let y = this.piecePosition[1] / this.squareSide;
 
-    return this._checkCollision(p, x, y, potX, potY, pHeight, pWidth);
+    return this._checkCollision(p, x, y, potX, potY);
   }
 
   _checkShadowCollision(potX, potY) {
     let p = this.shadowPiece.rotation[this.shadowRotation];
-    let pHeight = this._pieceHeight(p);
-    let pWidth = this._pieceWidth(p);
     let x = this.shadowPosition[0] / this.squareSide;
     let y = this.shadowPosition[1] / this.squareSide;
 
-    return this._checkCollision(p, x, y, potX, potY, pHeight, pWidth);
+    return this._checkCollision(p, x, y, potX, potY);
   }
 
-  _checkCollision (p, x, y, potX, potY, pHeight, pWidth) {
+  _checkCollision (p, x, y, potX, potY) {
     for (let i =0; i < p.length; i++) {
       for (let j =0; j < p[i].length; j++) {
         if (p[i][j] != 0) {
@@ -244,19 +251,16 @@ class Tetris {
     let rotLen = this.piece.rotation.length;
     let rotIndex = (this.pieceRotation + 1) % rotLen; 
     let potPiece = rotations[rotIndex];
-    let potPieceWidth = this._pieceWidth(potPiece);
-    let potPieceHeight = this._pieceHeight(potPiece);
     let x = this.piecePosition[0] / this.squareSide;
     let y = this.piecePosition[1] / this.squareSide;
     
-    if (this._checkCollision(potPiece, x, y, 0, 0, potPieceHeight, potPieceWidth)) {
+    if (this._checkCollision(potPiece, x, y, 0, 0)) {
       this.pieceRotation = rotIndex;
       this.shadowRotation = this.pieceRotation;
     }
   }
   
   _nextPiece() {
-    this.next = (this.next + 1) % 7;
     let depth = this._depth();
     let nextPiece = this.pieces[this.next];
     if (depth === 0) {
@@ -270,6 +274,7 @@ class Tetris {
       this.shadowPiece = nextPiece;
       this.shadowRotation = this.pieceRotation;
       this.shadowPosition = this.piecePosition;
+      this.next = Math.floor(Math.random() * 7);
     }
   }
 
@@ -408,15 +413,19 @@ class Tetris {
     this.nextPieceCtx.clearRect(0, 0, 
       this.nextPiecePlaceholder.width, 
       this.nextPiecePlaceholder.height);
+    this.nextPieceContainer.style.position = 'absolute';
+    this.nextPieceContainer.style.left = `${(window.innerWidth - this.canvas.width) / 2 - 150}px`;
+    this.nextPieceContainer.style.top = `${40}px`;
 
     let piece = this.pieces[this.next].rotation[0];
+    let initialN = this.pieces[this.next].initialN;
     console.log(piece)
     for (let i = 0; i < piece.length; i++) { 
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
            this._drawSquare(
-           (j * this.squareSide),
-           (i * this.squareSide),
+           (j + initialN[0] ) * this.squareSide,
+           (i + initialN[1]) * this.squareSide + 100,
            'white', 
            this.nextPieceCtx);
         }
