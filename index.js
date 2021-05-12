@@ -17,9 +17,12 @@ class Tetris {
     this.pauseState = false;
     this.endState = false;
     this.clearLineState = false;
+  
     this.scorePlaceholder = document.getElementById('game-score');
     this.nextPiecePlaceholder = document.getElementById('game-next-piece');
     this.nextPieceContainer = document.getElementById('game-next-piece-container');
+    this.pausePopup = document.getElementById('game-pause-popup');
+    this.endPopup = document.getElementById('game-end-popup');
 
     this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
     this.nextPiecePlaceholder.width = 120;
@@ -85,8 +88,8 @@ class Tetris {
       }
     ];
 
-    this.next = Math.floor(Math.random() * 7);
-    this.next = Math.floor(Math.random() * 7);
+    this.currentPieceID = 0; 
+    this.next = this._generateRandomNumber();
     this.piece = this.pieces[0];  // current piece
     this.pieceRotation = 0;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
@@ -103,18 +106,18 @@ class Tetris {
       const row = [];
       for (let j = 0; j < this.boardWidth; j++) {
         row.push(7);
-      }
+      0}
       this.board.push(row);
     }
   }
   
   reset() {
     this.frameCounter = 0;
-    //this.removeTurn = []; 
     this.score = 0;
 
     this.pauseState = false;
     this.endState = false;
+    this.clearLineState = false;
     this.board = [];
     for (let i = 0; i < this.boardHeight + 2; i++) {
       const row = [];
@@ -124,8 +127,8 @@ class Tetris {
       this.board.push(row);
     }
 
-    this.next = Math.floor(Math.random() * 7);
-    this.piece = this.pieces[this.next];  // current piece
+    this.next = this._generateRandomNumber();    
+    this.piece = this.pieces[0];  // current piece
     this.pieceRotation = 0;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
@@ -144,18 +147,17 @@ class Tetris {
 
   _process() {
     window.onresize = this._alignBoard();
+    this._render();
+    this._pause();
+    this._end();
+    this._clearLine();
+    if (this.clearLineState) { --this.clearingDelay; }
 
-    if (this.endState) {
-      this.reset();
-    }
-    if (this.pauseState) {
+    if (this.pauseState || this.endState) {
     } else {
       ++this.frameCounter;
-      this._clearLine();
 
-      if (this.clearLineState) { --this.clearingDelay;}
 
-      this._render();
       if (this.frameCounter > 10) { 
         if (this.score <= 200) {
           this.level = 1;
@@ -187,6 +189,7 @@ class Tetris {
             this.piecePosition[1] += this.squareSide;
           } else {
             this._freeze();
+            this.currentPieceID = this.next;
             this._nextPiece();
           }
         }
@@ -204,13 +207,31 @@ class Tetris {
   }
 
   _pause() {
-    if (this.pauseState) {
-      this.pauseState = false;
+    if (this.pauseState && !this.endState) {
+      this.context.fillStyle = '#3987c9';
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.context.globalAlpha = 0.5;
+      this.pausePopup.style.display = 'block';
     } else {
-      this.pauseState = true;
+      this.pauseState = false;
+      this.context.globalAlpha = 1;
+      this.pausePopup.style.display = 'none';
     }
   }
 
+  _end() {
+    if (this.endState) {
+      this.context.globalAlpha = 0.5;
+      this.context.fillStyle = '#3987c9';
+      this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      this.endPopup.style.display = "block";
+      this.scorePlaceholder.style.display = "none";
+      this.nextPieceContainer.style.display = "none"
+
+      this.endPopup.innerHTML = ("SCORE " + this.score) + '<p> Press enter to start new game </p>';
+    }
+
+  }
   _checkCurrentCollision(potX, potY) {
     let p = this.piece.rotation[this.pieceRotation];
     let x = this.piecePosition[0] / this.squareSide;
@@ -220,7 +241,7 @@ class Tetris {
   }
 
   _checkShadowCollision(potX, potY) {
-    let p = this.shadowPiece.rotation[this.shadowRotation];
+      let p = this.shadowPiece.rotation[this.shadowRotation];
     let x = this.shadowPosition[0] / this.squareSide;
     let y = this.shadowPosition[1] / this.squareSide;
 
@@ -265,6 +286,7 @@ class Tetris {
     let nextPiece = this.pieces[this.next];
     if (depth === 0) {
       this.endState = true;
+      this.pieceCurrentID = this.piece.id;
     }
     if (depth > 0 && !this.endState) { 
       this.piece = nextPiece;
@@ -274,7 +296,8 @@ class Tetris {
       this.shadowPiece = nextPiece;
       this.shadowRotation = this.pieceRotation;
       this.shadowPosition = this.piecePosition;
-      this.next = Math.floor(Math.random() * 7);
+      this.currentPieceID = this.next;
+      this.next = this._generateRandomNumber();
     }
   }
 
@@ -332,14 +355,15 @@ class Tetris {
         else if (j == this.boardWidth - 1) {removeTurn.push(i);}
       }
     }
-
     if (removeTurn.length > 0)  { this.clearLineState = true;}
-    if (this.clearLineState) { --this.clearingDelay;}
+    if (this.clearLineState) { --this.clearingDelay; }
 
     if (this.clearingDelay >= 1) {
       for (let i = 0; i < removeTurn.length; i++) {
-        for (let j = 0; j < this.boardWidth; j++) { 
-          this.board[removeTurn[i]][j] = Math.floor(Math.random() * 6);
+        for (let j = 0; j < this.boardWidth; j++) {
+          if (this.board[i][j] != 8) {
+            this.board[removeTurn[i]][j] = Math.floor(Math.random() * 6);
+          }
         }
       }
     } else {
@@ -353,7 +377,6 @@ class Tetris {
       }
       this.clearLineState = false;
       this.clearingDelay = 40;
-
       switch (removeTurn.length) {
          case 0: 
            break;
@@ -419,7 +442,6 @@ class Tetris {
 
     let piece = this.pieces[this.next].rotation[0];
     let initialN = this.pieces[this.next].initialN;
-    console.log(piece)
     for (let i = 0; i < piece.length; i++) { 
       for (let j = 0; j < piece[i].length; j++) {
         if (piece[i][j] != 0) {
@@ -444,6 +466,13 @@ class Tetris {
 
   _updatePiece() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  _generateRandomNumber() {
+    let rand = Math.floor(Math.random() * 7);
+    if (rand === this.currentPieceID) { 
+      return this._generateRandomNumber(); } 
+    return rand;
   }
   
   _drawScore() {
@@ -473,44 +502,6 @@ class Tetris {
     return depth;
   }
 
-  _pieceWidth(piece) {
-    let p = piece;
-    let entry = [];
-    let acc = 0;
-    for (let i = 0; i < p.length; i++) {
-      for (let j = 0; j < p[i].length; j++) {
-        if (p[i][j] != 0) {
-          entry.push(j);  
-        }
-      }
-    }
-    
-    let min = Math.min(...entry)
-    let max = Math.max(...entry)
-
-    while(min <= max) {
-      ++acc;
-      ++min;
-    }
-    return acc;
-  }
-  
-  _pieceHeight(piece) {
-    let p = piece;
-    let acc = 0;
-    let f = true
-    for (let i = 0; i < p.length; i++) {
-      for (let j = 0; j < p[i].length; j++) {
-        if (p[i][j] > 0 && f) { 
-          ++acc;
-          f = false;
-        }
-      }
-      f = true;
-    }
-    return acc;
-  }
-  
   _sleep() {return new Promise(requestAnimationFrame); }
 
   _alignBoard() {
@@ -554,7 +545,11 @@ class Tetris {
         }
         break;
       case "ShiftLeft":
-        game._pause();
+        if (game.pauseState) {
+          game.pauseState = false;
+        } else {
+          game.pauseState = true;
+        }
         break;
       
       // Hard drop
@@ -569,6 +564,13 @@ class Tetris {
           }
         }
         break;
+      case "Enter": 
+        if (!game.pauseState) {
+          game.endPopup.style.display = "none";
+          game.scorePlaceholder.style.display = "block";
+          game.nextPieceContainer.style.display = "block";
+          game.reset();
+        }
     }
 
     event.preventDefault();
