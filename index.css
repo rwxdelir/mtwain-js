@@ -23,29 +23,29 @@ html, body {
 
 #game-pause-popup, #game-end-popup {
   position: relative;
-  text-align: center;
   font-family: 'Roboto Mono';
   font-size: 45px;
   color: blue;
   font-family: 'Russo One', sans-serif;
-  display: none;
-  align-items: center;
   justify-content: center;
   top: 220px;
+  text-align: center;
 }
 
-#game-pause-popup p, #game-end-popup p {
-   font: 23px Allan, Helvetica, Arial, sans-serif;
-   color: blue;
-   background: gold;
-   position: absolute;
-   left: 835px;
-   width: 250px;
+#game-end-text, #game-pause-text {
+  position: relative;
+  font: 23px Allan, Helvetica, Arial, sans-serif;
+  color: blue;
+  background: gold;
+  width: 250px;
+  top: 220px;
+  text-align: center;
 }
 
-#game-end-popup {
-  
+#game-end { display: none; }
+#game-pause { display: none; }
 
+#game-pause-text {
+  width: 210px;
 }
-
 

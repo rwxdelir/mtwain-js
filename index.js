@@ -23,6 +23,10 @@ class Tetris {
     this.nextPieceContainer = document.getElementById('game-next-piece-container');
     this.pausePopup = document.getElementById('game-pause-popup');
     this.endPopup = document.getElementById('game-end-popup');
+    this.endText = document.getElementById('game-end-text');
+    this.endPopupContainer = document.getElementById('game-end');
+    this.pauseText = document.getElementById('game-pause-text');
+    this.pausePopupContainer = document.getElementById('game-pause');
 
     this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
     this.nextPiecePlaceholder.width = 120;
@@ -106,7 +110,7 @@ class Tetris {
       const row = [];
       for (let j = 0; j < this.boardWidth; j++) {
         row.push(7);
-      0}
+      }
       this.board.push(row);
     }
   }
@@ -211,11 +215,12 @@ class Tetris {
       this.context.fillStyle = '#3987c9';
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
       this.context.globalAlpha = 0.5;
-      this.pausePopup.style.display = 'block';
+      this.pauseText.style.left = `${((window.innerWidth - this.canvas.width) / 2)+45}px`;
+      this.pausePopupContainer.style.display = 'block';
     } else {
       this.pauseState = false;
       this.context.globalAlpha = 1;
-      this.pausePopup.style.display = 'none';
+      this.pausePopupContainer.style.display = 'none';
     }
   }
 
@@ -224,11 +229,12 @@ class Tetris {
       this.context.globalAlpha = 0.5;
       this.context.fillStyle = '#3987c9';
       this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      this.endPopup.style.display = "block";
+      this.endPopupContainer.style.display = "block";
       this.scorePlaceholder.style.display = "none";
       this.nextPieceContainer.style.display = "none"
 
-      this.endPopup.innerHTML = ("SCORE " + this.score) + '<p> Press enter to start new game </p>';
+      this.endPopup.innerHTML = ("SCORE " + this.score);
+      this.endText.style.left = `${((window.innerWidth - this.canvas.width) / 2)+ 25}px`;
     }
 
   }
@@ -566,7 +572,7 @@ class Tetris {
         break;
       case "Enter": 
         if (!game.pauseState) {
-          game.endPopup.style.display = "none";
+          game.endPopupContainer.style.display = "none";
           game.scorePlaceholder.style.display = "block";
           game.nextPieceContainer.style.display = "block";
           game.reset();
