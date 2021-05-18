@@ -118,6 +118,7 @@ class Tetris {
   reset() {
     this.frameCounter = 0;
     this.score = 0;
+    this.level = 1;
 
     this.pauseState = false;
     this.endState = false;
