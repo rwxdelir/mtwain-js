@@ -162,41 +162,16 @@ class Tetris {
     } else {
       ++this.frameCounter;
 
+      this._computeLevel();
 
-      if (this.frameCounter > 10) { 
-        if (this.score <= 200) {
-          this.level = 1;
-        }  
-        if (this.score >= 500) {
-          this.level = 2;
-        } 
-        if (this.score >= 1000) {
-          this.level = 3;
-        } 
-        if (this.score >= 1500) {
-          this.level = 4;
-        } 
-        if (this.score >= 2500) {
-          this.level = 5;
-        } 
-        if (this.score >= 3000) {
-          this.level = 6;
-        } 
-        if (this.score >= 4000) {
-          this.level = 7;
-        }
-
-        this.level = 3;
-
-        if (this.frameCounter + (this.level * 2) > 50) {
-          this.frameCounter = 0;
-          if (this._checkCurrentCollision(0,1)) {
-            this.piecePosition[1] += this.squareSide;
-          } else {
-            this._freeze();
-            this.currentPieceID = this.next;
-            this._nextPiece();
-          }
+      if (this.frameCounter + (this.level * 2) > 50) {
+        this.frameCounter = 0;
+        if (this._checkCurrentCollision(0,1)) {
+          this.piecePosition[1] += this.squareSide;
+        } else {
+          this._freeze();
+          this.currentPieceID = this.next;
+          this._nextPiece();
         }
       }
     }
@@ -287,6 +262,30 @@ class Tetris {
       this.shadowRotation = this.pieceRotation;
     }
   }
+
+  _computeLevel() {
+    if (this.score <= 200) {
+      this.level = 1;
+    }  
+    if (this.score >= 500) {
+      this.level = 2;
+    } 
+    if (this.score >= 1000) {
+      this.level = 3;
+    } 
+    if (this.score >= 1500) {
+      this.level = 4;
+    } 
+    if (this.score >= 2500) {
+      this.level = 5;
+    } 
+    if (this.score >= 3000) {
+      this.level = 6;
+    } 
+    if (this.score >= 4000) {
+      this.level = 7;
+    }
+  } 
   
   _nextPiece() {
     let depth = this._depth();
