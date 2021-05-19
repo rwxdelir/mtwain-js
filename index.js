@@ -32,6 +32,9 @@ class Tetris {
     this.nextPiecePlaceholder.width = 120;
     this.nextPiecePlaceholder.height = 80;
 
+    this.dropMove = false;
+    this.rotationMove = false;
+
     this.pieces = [
       {
         id: 0,
@@ -546,7 +549,8 @@ class Tetris {
           break;
         }
       case "ArrowUp": 
-        if (!game.pauseState) {
+        if (!game.pauseState && !game.rotationMove) {
+          game.rotationMove = true;
           game._nextRotation();
         }
         break;
@@ -560,7 +564,8 @@ class Tetris {
       
       // Hard drop
       case "Space":
-        if (!game.pauseState) {
+        if (!game.pauseState && !game.dropMove) {
+          game.dropMove = true;
           while (game._checkCurrentCollision(0, 1)) {
             game.piecePosition[1] += game.squareSide;
           }
@@ -581,6 +586,11 @@ class Tetris {
 
     event.preventDefault();
   })
+  document.addEventListener('keyup', event => {
+    game.dropMove = false;
+    game.rotationMove = false;
+  })
+
   game.play();
 }) ()
 
