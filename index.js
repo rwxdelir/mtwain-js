@@ -27,6 +27,8 @@ class Tetris {
     this.endPopupContainer = document.getElementById('game-end');
     this.pauseText = document.getElementById('game-pause-text');
     this.pausePopupContainer = document.getElementById('game-pause');
+    this.fpsPlaceholder = document.getElementById('game-fps');
+    this.levelPlaceholder = document.getElementById('game-level');
 
     this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
     this.nextPiecePlaceholder.width = 120;
@@ -159,6 +161,7 @@ class Tetris {
     this._pause();
     this._end();
     this._clearLine();
+    this._displayGameInfo();
     if (this.clearLineState) { --this.clearingDelay; }
 
     if (this.pauseState || this.endState) {
@@ -290,6 +293,11 @@ class Tetris {
     }
   } 
   
+  _displayGameInfo() {
+    this.levelPlaceholder.innerHTML = "Level " + this.level;
+    this.fpsPlaceholder.innerHTML = "Speed " + (this.level * 2) + this.frameCounter;
+  }
+
   _nextPiece() {
     let depth = this._depth();
     let nextPiece = this.pieces[this.next];
