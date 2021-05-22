@@ -1,6 +1,6 @@
 ### Quick Start
 
-* Clone the repo: git clone `https://github.com/arkulnid/mtwain-js`
+* Clone the repo: `git clone https://github.com/arkulnid/mtwain-js`
 * Start game: `chromium index.html & disown`
 
 ### Game Controls 
