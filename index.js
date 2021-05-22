@@ -21,6 +21,7 @@ class Tetris {
     this.scorePlaceholder = document.getElementById('game-score');
     this.nextPiecePlaceholder = document.getElementById('game-next-piece');
     this.nextPieceContainer = document.getElementById('game-next-piece-container');
+    this.nextPieceTitle = document.getElementById('game-next-piece-title');
     this.pausePopup = document.getElementById('game-pause-popup');
     this.endPopup = document.getElementById('game-end-popup');
     this.endText = document.getElementById('game-end-text');
@@ -32,10 +33,13 @@ class Tetris {
 
     this.nextPieceCtx = this.nextPiecePlaceholder.getContext('2d');
     this.nextPiecePlaceholder.width = 120;
-    this.nextPiecePlaceholder.height = 80;
+    this.nextPiecePlaceholder.height = 500;
 
+    this.nextPieces = Array(5).fill().map(() => this._generateRandomNumber());
+  
     this.dropMove = false;
     this.rotationMove = false;
+    this.newGame = false;
 
     this.pieces = [
       {
@@ -97,9 +101,8 @@ class Tetris {
       }
     ];
 
-    this.currentPieceID = 0; 
-    this.next = this._generateRandomNumber();
-    this.piece = this.pieces[0];  // current piece
+    this.next = this.nextPieces[0]  //this._generateRandomNumber();
+    this.piece = this.pieces[this._generateRandomNumber()];  // current piece
     this.pieceRotation = 0;               // current piece's position
     this.piecePosition = [this.piece.initialP[0] * this.squareSide, 
                           this.piece.initialP[1] * this.squareSide];
@@ -136,6 +139,8 @@ class Tetris {
       }
       this.board.push(row);
     }
+    
+    this.nextPieces = Array(5).fill().map(() => this._generateRandomNumber());
 
     this.next = this._generateRandomNumber();    
     this.piece = this.pieces[0];  // current piece
@@ -176,7 +181,6 @@ class Tetris {
           this.piecePosition[1] += this.squareSide;
         } else {
           this._freeze();
-          this.currentPieceID = this.next;
           this._nextPiece();
         }
       }
@@ -313,8 +317,10 @@ class Tetris {
       this.shadowPiece = nextPiece;
       this.shadowRotation = this.pieceRotation;
       this.shadowPosition = this.piecePosition;
-      this.currentPieceID = this.next;
-      this.next = this._generateRandomNumber();
+      this.nextPieces.shift();
+      this.nextPieces.push(this._generateRandomNumber());
+      this.next = this.nextPieces[0];
+      console.log(this.nextPieces)
     }
   }
 
@@ -455,21 +461,44 @@ class Tetris {
       this.nextPiecePlaceholder.height);
     this.nextPieceContainer.style.position = 'absolute';
     this.nextPieceContainer.style.left = `${(window.innerWidth - this.canvas.width) / 2 - 150}px`;
-    this.nextPieceContainer.style.top = `${40}px`;
+    this.nextPieceContainer.style.top = `${100}px`;
+    this.nextPieceTitle.style.top = (this.nextPieces[0] == 6) ? `${-27}px` : `${-45}px`;
+    
+    let piece;
+    let initialN;
 
-    let piece = this.pieces[this.next].rotation[0];
-    let initialN = this.pieces[this.next].initialN;
-    for (let i = 0; i < piece.length; i++) { 
-      for (let j = 0; j < piece[i].length; j++) {
-        if (piece[i][j] != 0) {
-           this._drawSquare(
-           (j + initialN[0] ) * this.squareSide,
-           (i + initialN[1]) * this.squareSide + 100,
-           'white', 
-           this.nextPieceCtx);
-        }
-      }                                              
-    } 
+    for (let w = 0; w < this.nextPieces.length; w++) {
+      piece = this.pieces[this.nextPieces[w]].rotation[0];
+      initialN = this.pieces[this.nextPieces[w]].initialN;
+      for (let i = 0; i < piece.length; i++) { 
+        for (let j = 0; j < piece[i].length; j++) {
+          if (piece[i][j] != 0) {
+            if (w == 0) {
+                this._drawSquare(
+               (j + initialN[0] ) * this.squareSide,
+               (i + initialN[1]) * this.squareSide + 100 + (w * 80),
+               'black', 
+               this.nextPieceCtx); 
+            } else {
+               this.nextPieceCtx.fillStyle = 'pink';
+               this.nextPieceCtx.shadowOffsetX = 0;
+               this.nextPieceCtx.shadowOffsetY = 0;
+               this.nextPieceCtx.fillRect((j + initialN[0] ) * this.squareSide,
+                     (i + initialN[1]) * this.squareSide + 100 + (w * 80), 
+                  this.squareSide, this.squareSide);
+            }
+          }
+          if (w == 0 && piece[i][j] != 0) {
+            this.nextPieceCtx.strokeStyle = 'black';
+            this.nextPieceCtx.strokeRect( 
+             (j + initialN[0] ) * this.squareSide,
+             (i + initialN[1]) * this.squareSide + 100 + (w * 80), 
+              this.squareSide, 
+              this.squareSide);
+          }
+        }                                              
+      }
+    }
 
   }
   
@@ -487,7 +516,7 @@ class Tetris {
 
   _generateRandomNumber() {
     let rand = Math.floor(Math.random() * 7);
-    if (rand === this.currentPieceID) { 
+    if (typeof this.nextPieces !== 'undefined' && this.nextPieces.includes(rand)) { 
       return this._generateRandomNumber(); } 
     return rand;
   }
@@ -584,11 +613,12 @@ class Tetris {
         }
         break;
       case "Enter": 
-        if (!game.pauseState) {
+        if (!game.pauseState && !game.newGame) {
           game.endPopupContainer.style.display = "none";
           game.scorePlaceholder.style.display = "block";
           game.nextPieceContainer.style.display = "block";
           game.reset();
+          game.newGame = true;
         }
     }
 
@@ -597,6 +627,7 @@ class Tetris {
   document.addEventListener('keyup', event => {
     game.dropMove = false;
     game.rotationMove = false;
+    game.newGame = false;
   })
 
   game.play();
