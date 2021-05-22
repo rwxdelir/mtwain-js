@@ -17,5 +17,3 @@
 | Hard drop | Space |
 | Pause | Shift |
 | Start new game | Enter |
-
-![](./assets/tetris_demo.gif)
