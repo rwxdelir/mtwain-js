@@ -3,6 +3,10 @@
 * Clone the repo: `git clone https://github.com/arkulnid/mtwain-js`
 * Start game: `chromium index.html & disown`
 
+### Demo 
+
+![](./assets/tetris_demo.gif)
+
 ### Game Controls 
 
 | Action | Keys |
@@ -14,9 +18,5 @@
 | Hard drop | Space |
 | Pause | Shift |
 | Start new game | Enter |
-
-### Game Demo 
-
-![](./assets/tetris_demo.gif)
 
 
