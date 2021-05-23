@@ -11,7 +11,7 @@ class Tetris {
     this.canvas.width = (this.boardWidth * this.squareSide);
     this.canvas.height = (this.boardHeight * this.squareSide);
     this.score = 0;
-    this.level = 1;
+    this.level = 0;
     
     this.clearingDelay = 40;
     this.pauseState = false;
