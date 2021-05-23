@@ -1,2 +1,2 @@
-![](/home/arkul/Videos/2.gif)
+![](./assets/tetris_demo.gif)
 

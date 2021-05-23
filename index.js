@@ -320,7 +320,6 @@ class Tetris {
       this.nextPieces.shift();
       this.nextPieces.push(this._generateRandomNumber());
       this.next = this.nextPieces[0];
-      console.log(this.nextPieces)
     }
   }
 
